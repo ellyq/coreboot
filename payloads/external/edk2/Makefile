@@ -116,10 +116,13 @@ ifeq ($(CONFIG_EDK2_SECURE_BOOT_SUPPORT), y)
 BUILD_STR += -D SECURE_BOOT_ENABLE=TRUE
 endif
 <<<<<<< HEAD
+<<<<<<< HEAD
 # PCIEXP_SUPPORT_RESIZABLE_BARS = FALSE
 ifeq ($(CONFIG_PCIEXP_SUPPORT_RESIZABLE_BARS), y)
 BUILD_STR += --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdPcieResizableBarSupport=TRUE
 =======
+=======
+>>>>>>> 8234f07e00 (payloads/edk2: Hook up PCIe Resizable BARs flag)
 # GOP_DRIVER			= FALSE
 ifeq ($(CONFIG_EDK2_GOP_DRIVER), y)
 BUILD_STR += -D USE_PLATFORM_GOP=TRUE
@@ -129,7 +132,15 @@ ifeq ($(CONFIG_EDK2_NETWORK_PXE_SUPPORT), y)
 BUILD_STR += -D NETWORK_DRIVER_ENABLE=TRUE -D NETWORK_ENABLE=TRUE
 BUILD_STR += -D NETWORK_PXE_BOOT=TRUE -D NETWORK_RTEK_USB=TRUE
 BUILD_STR += -D NETWORK_ASIX_USB3=TRUE -D NETWORK_ASIX_USB2=TRUE
+<<<<<<< HEAD
 >>>>>>> 65efc7115a (payloads/external/edk2: Add GOP patches)
+=======
+=======
+# PCIEXP_SUPPORT_RESIZABLE_BARS = FALSE
+ifeq ($(CONFIG_PCIEXP_SUPPORT_RESIZABLE_BARS), y)
+BUILD_STR += --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdPcieResizableBarSupport=TRUE
+>>>>>>> 829b228ad7 (payloads/edk2: Hook up PCIe Resizable BARs flag)
+>>>>>>> 8234f07e00 (payloads/edk2: Hook up PCIe Resizable BARs flag)
 endif
 
 #
