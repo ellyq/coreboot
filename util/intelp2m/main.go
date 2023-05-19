@@ -70,6 +70,7 @@ func main() {
 		"\tlbg - Lewisburg PCH with Xeon SP\n"+
 		"\tapl - Apollo Lake SoC\n"+
 		"\tcnl - CannonLake-LP or Whiskeylake/Coffeelake/Cometlake-U SoC\n"+
+		"\ttgl - TigerLake-H SoC\n"+
 		"\tadl - AlderLake PCH\n")
 
 	fieldstyle :=  flag.String("fld", "none", "set fields macros style:\n"+

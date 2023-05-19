@@ -11,6 +11,7 @@ import (
 	"review.coreboot.org/coreboot.git/util/intelp2m/platforms/lbg"
 	"review.coreboot.org/coreboot.git/util/intelp2m/platforms/apl"
 	"review.coreboot.org/coreboot.git/util/intelp2m/platforms/cnl"
+	"review.coreboot.org/coreboot.git/util/intelp2m/platforms/tgl"
 	"review.coreboot.org/coreboot.git/util/intelp2m/platforms/adl"
 	"review.coreboot.org/coreboot.git/util/intelp2m/config"
 )
@@ -149,6 +150,7 @@ func (parser *ParserData) PlatformSpecificInterfaceSet() {
 		config.CannonType    : cnl.PlatformSpecific{
 			InheritanceTemplate : snr.PlatformSpecific{},
 		},
+		config.TigerType    : tgl.PlatformSpecific{},
 		config.AlderType    : adl.PlatformSpecific{},
 	}
 	parser.platform = platform[config.PlatformGet()]
