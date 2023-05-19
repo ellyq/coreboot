@@ -28,7 +28,8 @@ const (
 	LewisburgType uint8  = 1
 	ApolloType    uint8  = 2
 	CannonType    uint8  = 3
-	AlderType    uint8  = 4
+	TigerType     uint8  = 4
+	AlderType     uint8  = 5
 )
 
 var key uint8 = SunriseType
@@ -38,6 +39,7 @@ var platform = map[string]uint8{
 	"lbg": LewisburgType,
 	"apl": ApolloType,
 	"cnl": CannonType,
+	"tgl": TigerType,
 	"adl": AlderType}
 func PlatformSet(name string) int {
 	if platformType, valid := platform[name]; valid {
@@ -63,6 +65,9 @@ func IsPlatformLewisburg() bool {
 }
 func IsPlatformCannonLake() bool {
 	return IsPlatform(CannonType)
+}
+func IsPlatformTigerLake() bool {
+	return IsPlatform(TigerType)
 }
 func IsPlatformAlderLakeH() bool {
 	return IsPlatform(AlderType)
