@@ -30,7 +30,7 @@ BUILD_STR = -p UefiPayloadPkg/UefiPayloadPkg.dsc
 endif
 BUILD_STR += -t COREBOOT
 BUILD_STR += -D BOOTLOADER=COREBOOT
-ifneq ($(V),1)
+ifneq ($(CONFIG_EDK2_VERBOSE_BUILD),y)
 BUILD_STR += -q
 ifeq ($(CONFIG_EDK2_UEFIPAYLOAD),y)
 BUILD_STR += -s
@@ -110,6 +110,16 @@ endif
 # EDK2_SECURE_BOOT_SUPPORT      = FALSE
 ifeq ($(CONFIG_EDK2_SECURE_BOOT_SUPPORT), y)
 BUILD_STR += -D SECURE_BOOT_ENABLE=TRUE
+endif
+# GOP_DRIVER			= FALSE
+ifeq ($(CONFIG_EDK2_GOP_DRIVER), y)
+BUILD_STR += -D USE_PLATFORM_GOP=TRUE
+endif
+# EDK2_NETWORK_PXE_SUPPORT	= FALSE
+ifeq ($(CONFIG_EDK2_NETWORK_PXE_SUPPORT), y)
+BUILD_STR += -D NETWORK_DRIVER_ENABLE=TRUE -D NETWORK_ENABLE=TRUE
+BUILD_STR += -D NETWORK_PXE_BOOT=TRUE -D NETWORK_RTEK_USB=TRUE
+BUILD_STR += -D NETWORK_ASIX_USB3=TRUE -D NETWORK_ASIX_USB2=TRUE
 endif
 
 #
@@ -222,6 +232,11 @@ print:
 
 prep: $(EDK2_PATH) $(EDK2_PLATFORMS_PATH) clean checktools logo
 	cd $(WORKSPACE); \
+		if [ -n "$(CONFIG_EDK2_GOP_DRIVER)" ]; then \
+			echo "Using GOP driver $(CONFIG_EDK2_GOP_FILE)"; \
+			cp $(top)/$(CONFIG_EDK2_GOP_FILE) $(EDK2_PATH)/UefiPayloadPkg/IntelGopDriver.efi; \
+			cp $(top)/$(CONFIG_EDK2_VBT_FILE) $(EDK2_PATH)/UefiPayloadPkg/vbt.bin; \
+		fi; \
 		source $(EDK2_PATH)/edksetup.sh; \
 		unset CC; $(MAKE) -C $(EDK2_PATH)/BaseTools 2>&1; \
 		grep -q "COREBOOT" $(EDK2_PATH)/Conf/tools_def.txt; \
