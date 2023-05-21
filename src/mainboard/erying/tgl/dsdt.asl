@@ -23,9 +23,9 @@ DefinitionBlock(
 		#include <soc/intel/tigerlake/acpi/tcss.asl>
 	}
 
+	#include <southbridge/intel/common/acpi/sleepstates.asl>
+
 	Scope (\_SB.PCI0.LPCB)
 	{
 	}
-
-	#include <southbridge/intel/common/acpi/sleepstates.asl>
 }

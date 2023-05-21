@@ -7,9 +7,9 @@
 const u32 cim_verb_data[] = {
 	/* Realtek ALC897 */
 	0x10ec0897, /* Vendor ID */
-	0x10ec0897, /* Subsystem ID */
+	0x10ec3000, /* Subsystem ID */
 	15, /* Number of entries */
-	AZALIA_SUBVENDOR(0, 0x10ec0897),
+	AZALIA_SUBVENDOR(0, 0x10ec3000),
 	AZALIA_PIN_CFG(0, 0x11, 0x40000000),
 	AZALIA_PIN_CFG(0, 0x12, 0x411111f0),
 	AZALIA_PIN_CFG(0, 0x14, 0x01014020),
