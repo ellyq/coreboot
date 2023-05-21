@@ -17,7 +17,21 @@ chip soc/intel/tigerlake
 	register "eist_enable" = "1"
 	register "SaGv" = "SaGv_Enabled"
 	register "enable_c6dram" = "1"
-	register "s0ix_enable" = "0"
+	register "s0ix_enable" = "1"	# S3 state is broken on production silicon!
+
+        register "ext_fivr_settings" = "{
+                .configure_ext_fivr = 1,
+                .v1p05_enable_bitmap = FIVR_ENABLE_ALL_SX,
+                .vnn_enable_bitmap = FIVR_ENABLE_ALL_SX,
+                .v1p05_supported_voltage_bitmap = FIVR_VOLTAGE_NORMAL |
+                                                  FIVR_VOLTAGE_MIN_ACTIVE |
+                                                  FIVR_VOLTAGE_MIN_RETENTION,
+                .vnn_supported_voltage_bitmap = FIVR_VOLTAGE_NORMAL |
+                                                FIVR_VOLTAGE_MIN_ACTIVE |
+                                                FIVR_VOLTAGE_MIN_RETENTION,
+                .v1p05_icc_max_ma = 500,
+                .vnn_sx_voltage_mv = 1250,
+        }"
 
         register "pmc_gpe0_dw0" = "PMC_GPP_R"
         register "pmc_gpe0_dw1" = "PMC_GPP_B"
@@ -186,25 +200,40 @@ chip soc/intel/tigerlake
                 device ref pcie_rp24 on end
 
 		device ref uart0 on end
-		device ref uart2 off end
+		device ref uart2 on end
 		device ref gspi1 on end
 
 		device ref pch_espi on #LPC/eSPI
 			chip superio/ite/it8613e
-				device pnp 2e.0 off end
+				device pnp 2e.0 on end
 				device pnp 2e.1 on      # COM 1
 					io 0x60 = 0x3f8
 					irq 0x70 = 4
+					irq 0xf0 = 1
 				end
-				device pnp 2e.4 on end
+				device pnp 2e.4 on # Environment
+					io 0x60 = 0xa30
+					io 0x62 = 0xa20
+					irq 0x70 = 0
+					irq 0xf0 = 8
+				end
 				device pnp 2e.5 off end # Keyboard
 				device pnp 2e.6 off end # Mouse
-				device pnp 2e.7 on end # GPIO
-				device pnp 2e.a off end # CIR
+				device pnp 2e.7 on	# GPIO
+					io 0x60 = 0xa10
+					io 0x62 = 0xa00
+					irq 0x70 = 0
+				end
+				device pnp 2e.a on	 # CIR
+					io 0x60 = 0x310
+					irq 0x70 = 0
+					irq 0xf0 = 6
+				end
 			end
 		end
 		device ref p2sb on end
 		device ref hda on
+			subsystemid 0x10ec 0x3000
 			register "PchHdaAudioLinkHdaEnable" = "1"
 			register "PchHdaDspEnable" = "1"
 		end
