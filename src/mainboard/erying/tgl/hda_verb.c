@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
-/* Not fully functional yet! - May 15th, 2023 */
-
 #include <device/azalia_device.h>
 
 const u32 cim_verb_data[] = {
