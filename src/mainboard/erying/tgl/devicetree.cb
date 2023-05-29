@@ -19,20 +19,6 @@ chip soc/intel/tigerlake
 	register "enable_c6dram" = "1"
 	register "s0ix_enable" = "1"	# S3 state is broken on production silicon!
 
-        register "ext_fivr_settings" = "{
-                .configure_ext_fivr = 1,
-                .v1p05_enable_bitmap = FIVR_ENABLE_ALL_SX,
-                .vnn_enable_bitmap = FIVR_ENABLE_ALL_SX,
-                .v1p05_supported_voltage_bitmap = FIVR_VOLTAGE_NORMAL |
-                                                  FIVR_VOLTAGE_MIN_ACTIVE |
-                                                  FIVR_VOLTAGE_MIN_RETENTION,
-                .vnn_supported_voltage_bitmap = FIVR_VOLTAGE_NORMAL |
-                                                FIVR_VOLTAGE_MIN_ACTIVE |
-                                                FIVR_VOLTAGE_MIN_RETENTION,
-                .v1p05_icc_max_ma = 500,
-                .vnn_sx_voltage_mv = 1250,
-        }"
-
         register "pmc_gpe0_dw0" = "PMC_GPP_R"
         register "pmc_gpe0_dw1" = "PMC_GPP_B"
         register "pmc_gpe0_dw2" = "PMC_GPP_D"
@@ -61,18 +47,34 @@ chip soc/intel/tigerlake
 		device ref dptf off end
 			register "dptf_enable" = "0"
 
-		device ref peg0 on
-			register "PcieClkSrcUsage[4]" = "0x80"
-			register "PcieClkSrcClkReq[4]" = "PCIE_CLK_NOTUSED"
-		end
 
+		# M.2 Gen4 (SoC)
+		device ref peg0 on
+			register "PcieClkSrcUsage[2]" = "0x40"
+			register "PcieClkSrcClkReq[2]" = "PCIE_CLK_NOTUSED"
+		end
+		
+		# PCI-E x16 Gen4
 		device ref peg1 on
-			register "PcieClkSrcUsage[0]" = "0x80"
+			register "PcieClkSrcUsage[0]" = "0x41"
 			register "PcieClkSrcClkReq[0]" = "PCIE_CLK_NOTUSED"
 		end
 
-                device ref peg2 on end
-                device ref peg3 on end
+		# Realtek GbE
+		device ref pcie_rp11 on
+			register "PcieRpEnable[10]" = "1"
+			register "PcieRpLtrEnable[10]" = "1"
+			register "PcieClkSrcUsage[3]" = "0x80"
+			register "PcieClkSrcClkReq[3]" = "PCIE_CLK_NOTUSED"
+		end
+
+		# M.2 Gen3 (Chipset)
+		device ref pcie_rp5 on
+			register "PcieRpEnable[4]" = "1"
+			register "PcieRpLtrEnable[4]" = "1"
+			register "PcieClkSrcUsage[4]" = "0x80"
+			register "PcieClkSrcClkReq[4]" = "PCIE_CLK_NOTUSED"
+		end
 
 		device ref north_xhci on
 			register "TcssXhciEn" = "1"
@@ -101,106 +103,24 @@ chip soc/intel/tigerlake
 		device ref i2c1 on end
 		device ref i2c2 on end
 		device ref i2c3 on end
-		device ref heci1 off end
+		device ref heci1 on end
 
 		device ref sata on
-			register "SataPortsEnable[0]" = "1"
-			register "SataPortsEnable[1]" = "1"
-			register "SataPortsEnable[2]" = "1"
-			register "SataPortsEnable[3]" = "1"
-			register "SataSalpSupport" = "1"
-			register "SataPortsDevSlp[0]" = "1"
-			register "SataPortsDevSlp[1]" = "1"
-			register "SataPortsDevSlp[2]" = "1"
-			register "SataPortsDevSlp[3]" = "1"
+			 register "SataPortsEnable[0]" = "1"
+			 register "SataPortsEnable[1]" = "1"
+			 register "SataPortsEnable[2]" = "1"
+			 register "SataPortsEnable[3]" = "1"
+			 register "SataSalpSupport" = "1"
+			 register "SataPortsDevSlp[0]" = "1"
+			 register "SataPortsDevSlp[1]" = "1"
+			 register "SataPortsDevSlp[2]" = "1"
+			 register "SataPortsDevSlp[3]" = "1"
 		end
 
 		device ref i2c4 on end
 		device ref i2c5 on end
-
-		device ref pcie_rp2 on
-			register "PcieRpEnable[1]" = "1"
-			register "PcieRpLtrEnable[1]" = "1"
-			register "PcieClkSrcUsage[1]" = "0x80"
-			register "PcieClkSrcClkReq[1]" = "PCIE_CLK_NOTUSED"
-		end
-
-		device ref pcie_rp3 on
-			register "PcieRpEnable[2]" = "1"
-			register "PcieRpLtrEnable[2]" = "1"
-			register "PcieClkSrcUsage[3]" = "0x80"
-			register "PcieClkSrcClkReq[3]" = "PCIE_CLK_NOTUSED"
-		end
-
-		device ref pcie_rp5 on
-			register "PcieRpEnable[4]" = "1"
-			register "PcieRpLtrEnable[4]" = "1"
-			register "PcieClkSrcUsage[8]" = "0x80"
-			register "PcieClkSrcClkReq[8]" = "PCIE_CLK_NOTUSED"
-		end
-
-		device ref pcie_rp6 on
-			register "PcieRpEnable[5]" = "1"
-			register "PcieRpLtrEnable[5]" = "1"
-			register "PcieClkSrcUsage[10]" = "0x80"
-			register "PcieClkSrcClkReq[10]" = "PCIE_CLK_NOTUSED"
-		end
-
-		device ref pcie_rp7 on
-			register "PcieRpEnable[6]" = "1"
-			register "PcieRpLtrEnable[6]" = "1"
-			register "PcieClkSrcUsage[7]" = "0x80"
-			register "PcieClkSrcClkReq[7]" = "PCIE_CLK_NOTUSED"
-		end
-
-		device ref pcie_rp8 on
-			register "PcieRpEnable[7]" = "1"
-			register "PcieRpLtrEnable[7]" = "1"
-			register "PcieClkSrcUsage[2]" = "0x80"
-			register "PcieClkSrcClkReq[2]" = "PCIE_CLK_NOTUSED"
-		end
-
-		device ref pcie_rp9 on
-			register "PcieRpEnable[8]" = "1"
-			register "PcieRpLtrEnable[8]" = "1"
-			register "PcieClkSrcUsage[6]" = "0x80"
-			register "PcieClkSrcClkReq[6]" = "PCIE_CLK_NOTUSED"
-		end
-
-		device ref pcie_rp11 on
-			register "PcieRpEnable[10]" = "1"
-			register "PcieRpLtrEnable[10]" = "1"
-			register "PcieClkSrcUsage[5]" = "0x80"
-			register "PcieClkSrcClkReq[5]" = "PCIE_CLK_NOTUSED"
-		end
-
-                device ref pcie_rp1 on end
-                # device ref pcie_rp2 on end
-                # device ref pcie_rp3 on end
-                device ref pcie_rp4 on end
-                # device ref pcie_rp5 on end
-                # device ref pcie_rp6 on end
-                # device ref pcie_rp7 on end
-                # device ref pcie_rp8 on end
-		# device ref pcie_rp9 on end
-                device ref pcie_rp10 on end
-                # device ref pcie_rp11 on end
-                device ref pcie_rp12 on end
-                device ref pcie_rp13 on end
-                device ref pcie_rp14 on end
-                device ref pcie_rp15 on end
-                device ref pcie_rp16 on end
-		device ref pcie_rp17 on end
-                device ref pcie_rp18 on end
-                device ref pcie_rp19 on end
-                device ref pcie_rp20 on end
-                device ref pcie_rp21 on end
-                device ref pcie_rp22 on end
-                device ref pcie_rp23 on end
-                device ref pcie_rp24 on end
-
 		device ref uart0 on end
-		device ref uart2 on end
+		device ref uart2 off end
 		device ref gspi1 on end
 
 		device ref pch_espi on #LPC/eSPI
@@ -235,7 +155,7 @@ chip soc/intel/tigerlake
 		device ref hda on
 			subsystemid 0x10ec 0x3000
 			register "PchHdaAudioLinkHdaEnable" = "1"
-			register "PchHdaDspEnable" = "1"
+			register "PchHdaDspEnable" = "0"
 		end
 		device ref smbus on end
 		device ref fast_spi on end

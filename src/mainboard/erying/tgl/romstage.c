@@ -8,7 +8,7 @@
 void mainboard_memory_init_params(FSPM_UPD *mupd)
 {
 
-	static const struct mb_cfg mem_type = { 
+	static const struct mb_cfg mem_type = {
 		.type = MEM_TYPE_DDR4,
 		.ddr4_config = { .dq_pins_interleaved = true },
 	};
@@ -23,6 +23,8 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
         memcfg_init(mupd, &mem_type, &spd_info, half_populated);
 
 	/* FSP Configuration */
+	mupd->FspmConfig.GpioOverride = 0;
+	mupd->FspmConfig.DmiMaxLinkSpeed = 4;
 	mupd->FspmConfig.UserBd = 1;
 	mupd->FspmConfig.PchHdaEnable = 1;
 	mupd->FspmConfig.SmbusEnable = 1;
