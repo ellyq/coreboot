@@ -17,7 +17,7 @@ chip soc/intel/tigerlake
 	register "eist_enable" = "1"
 	register "SaGv" = "SaGv_Enabled"
 	register "enable_c6dram" = "1"
-	register "s0ix_enable" = "1"	# S3 state is broken on production silicon!
+	register "s0ix_enable" = "0"	#IT8613E doesn't support s0ix specification, only S3 is possible
 
         register "pmc_gpe0_dw0" = "PMC_GPP_R"
         register "pmc_gpe0_dw1" = "PMC_GPP_B"
