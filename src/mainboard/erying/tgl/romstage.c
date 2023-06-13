@@ -45,6 +45,12 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	// Not functional yet! - Will result in FspNotify error 0x80000007! //
 	// mupd->FspmConfig.SpdProfileSelected = 2;
 	mupd->FspmConfig.RefClk = 1;
-	mupd->FspmConfig.VddVoltage = 1350;
+	mupd->FspmConfig.VddVoltage = 1450;
+
+	mupd->FspmConfig.OcLock = 0;
+	mupd->FspmConfig.SaOcSupport = 1;
+	mupd->FspmConfig.RingDownBin = 0;
+	mupd->FspmConfig.GearRatio = 1;
+	mupd->FspmConfig.NModeSupport = 1;
 
 }
