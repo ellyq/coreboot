@@ -6,6 +6,7 @@ chip soc/intel/tigerlake
 	.tdp_pl1_override = 45,
 	.tdp_pl2_override = 109,
 	}"
+
 	## 8_CORE = i7/i9
 	register "power_limits_config[POWER_LIMITS_H_8_CORE]" = "{
 	.tdp_pl1_override = 45,
@@ -17,11 +18,28 @@ chip soc/intel/tigerlake
 	register "eist_enable" = "1"
 	register "SaGv" = "SaGv_Enabled"
 	register "enable_c6dram" = "1"
-	register "s0ix_enable" = "0"	#IT8613E doesn't support s0ix specification, only S3 is possible
 
-        register "pmc_gpe0_dw0" = "PMC_GPP_R"
-        register "pmc_gpe0_dw1" = "PMC_GPP_B"
-        register "pmc_gpe0_dw2" = "PMC_GPP_D"
+	# IT8613E doesn't support s0ix specification, only S3 is possible.
+	## Sleep is broken, supposedly RAM loses power in S3 state. Make sure to disable it in your OS for the time being.
+	register "s0ix_enable" = "0" 
+
+	# Power
+        register "deep_s3_enable_ac" = "1"
+        register "deep_s3_enable_dc" = "1"
+        register "deep_s5_enable_ac" = "1"
+        register "deep_s5_enable_dc" = "1"
+        register "deep_sx_config" = "DSX_EN_WAKE_PIN"
+
+        # Copied from sys76/oryp8, fixes power/reset buttons
+        	register "ext_fivr_settings" = "{
+		.configure_ext_fivr = 1,
+		.v1p05_enable_bitmap = 0,
+		.vnn_enable_bitmap = 0,
+		.v1p05_supported_voltage_bitmap = 0,
+		.vnn_supported_voltage_bitmap = 0,
+		.v1p05_icc_max_ma = 500,
+		.vnn_sx_voltage_mv = 1050,
+	}"
 
         # Disable hybrid storage, Optane will work as NVME
 	register "HybridStorageMode" = "0"
@@ -44,18 +62,20 @@ chip soc/intel/tigerlake
 			register "DdiPortBDdc" = "0"
 		end
 
-		device ref dptf off end
+		device ref dptf off
 			register "dptf_enable" = "0"
-
+		end
 
 		# M.2 Gen4 (SoC)
 		device ref peg0 on
+			register "PcieRpAdvancedErrorReporting[2]" = "1"
 			register "PcieClkSrcUsage[2]" = "0x40"
 			register "PcieClkSrcClkReq[2]" = "PCIE_CLK_NOTUSED"
 		end
-		
+
 		# PCI-E x16 Gen4
 		device ref peg1 on
+			register "PcieRpAdvancedErrorReporting[0]" = "1"
 			register "PcieClkSrcUsage[0]" = "0x41"
 			register "PcieClkSrcClkReq[0]" = "PCIE_CLK_NOTUSED"
 		end
@@ -65,45 +85,58 @@ chip soc/intel/tigerlake
 			register "PcieRpEnable[10]" = "1"
 			register "PcieRpLtrEnable[10]" = "1"
 			register "PcieClkSrcUsage[3]" = "0x80"
-			register "PcieClkSrcClkReq[3]" = "PCIE_CLK_NOTUSED"
+			register "PcieClkSrcClkReq[3]" = "3"
 		end
 
 		# M.2 Gen3 (Chipset)
 		device ref pcie_rp5 on
 			register "PcieRpEnable[4]" = "1"
 			register "PcieRpLtrEnable[4]" = "1"
-			register "PcieClkSrcUsage[4]" = "0x80"
-			register "PcieClkSrcClkReq[4]" = "PCIE_CLK_NOTUSED"
+			register "PcieRpSlotImplemented[4]" = "1"
+			register "PcieRpAdvancedErrorReporting[4]" = "1"
+			register "PcieClkSrcUsage[4]" = "4"
+			register "PcieClkSrcClkReq[4]" = "4"
 		end
 
-		device ref north_xhci on
-			register "TcssXhciEn" = "1"
+		# M.2 Gen3 Wifi (Chipset) 1d.0
+		device ref pcie_rp9 on
+			register "PcieRpEnable[8]" = "1"
+			register "PcieRpLtrEnable[8]" = "1"
+			register "PcieRpSlotImplemented[8]" = "1"
+			register "PcieRpAdvancedErrorReporting[8]" = "1"
+			register "PcieClkSrcUsage[5]" = "8" # Found by TAE
+			register "PcieClkSrcClkReq[5]" = "5"
 		end
 
 		device ref south_xhci on
 			# USB2
-			register "usb2_ports[0]" = "USB2_PORT_MAX(OC0)"
-			register "usb2_ports[1]" = "USB2_PORT_MAX(OC0)"
-			register "usb2_ports[2]" = "USB2_PORT_MAX(OC1)"
-			register "usb2_ports[3]" = "USB2_PORT_MAX(OC1)"
-			register "usb2_ports[4]" = "USB2_PORT_MAX(OC2)"
-			register "usb2_ports[5]" = "USB2_PORT_MAX(OC2)"
+			register "usb2_ports[2]" = "USB2_PORT_MID(OC_SKIP)" # NIC left
+			register "usb2_ports[3]" = "USB2_PORT_MID(OC_SKIP)" # NIC right
+			register "usb2_ports[4]" = "USB2_PORT_MID(OC_SKIP)" # FP1
+			register "usb2_ports[5]" = "USB2_PORT_MID(OC_SKIP)" # FP2
+
 			# USB3
-			register "usb3_ports[0]" = "USB3_PORT_DEFAULT(OC_SKIP)"
-			register "usb3_ports[1]" = "USB3_PORT_DEFAULT(OC_SKIP)"
-			register "usb3_ports[2]" = "USB3_PORT_DEFAULT(OC_SKIP)"
-			register "usb3_ports[3]" = "USB3_PORT_DEFAULT(OC_SKIP)"
-			register "usb3_ports[4]" = "USB3_PORT_DEFAULT(OC_SKIP)"
-			register "usb3_ports[5]" = "USB3_PORT_DEFAULT(OC_SKIP)"
+			register "usb3_ports[4]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear top left
+			register "usb2_ports[10]" = "USB2_PORT_MID(OC_SKIP)"
+
+			register "usb3_ports[5]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear top right
+			register "usb2_ports[11]" = "USB2_PORT_MID(OC_SKIP)"
+
+			register "usb3_ports[1]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear bottom left
+			register "usb2_ports[1]" = "USB2_PORT_MID(OC_SKIP)"
+			
+			register "usb3_ports[0]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear bottom right
+			register "usb2_ports[0]" = "USB2_PORT_MID(OC_SKIP)"
+
+			register "usb3_ports[8]" = "USB3_PORT_DEFAULT(OC_SKIP)" # USB3 FP1
+			register "usb2_ports[8]" = "USB2_PORT_MID(OC_SKIP)"
+			
+			register "usb3_ports[9]" = "USB3_PORT_DEFAULT(OC_SKIP)" # USB3 FP2
+			register "usb2_ports[9]" = "USB2_PORT_MID(OC_SKIP)"
+
                 end
 
 		device ref shared_ram on end
-		device ref cnvi_wifi off end
-		device ref i2c0 on end
-		device ref i2c1 on end
-		device ref i2c2 on end
-		device ref i2c3 on end
-		device ref heci1 on end
 
 		device ref sata on
 			 register "SataPortsEnable[0]" = "1"
@@ -117,11 +150,13 @@ chip soc/intel/tigerlake
 			 register "SataPortsDevSlp[3]" = "1"
 		end
 
-		device ref i2c4 on end
-		device ref i2c5 on end
-		device ref uart0 on end
-		device ref uart2 off end
-		device ref gspi1 on end
+		device ref uart0 on
+			register "SerialIoUartMode[PchSerialIoIndexUART0]" = "PchSerialIoPci"
+		end
+
+		device ref gspi1 on
+			register "SerialIoGSpiMode[PchSerialIoIndexGSPI1]" = "PchSerialIoPci"
+		end
 
 		device ref pch_espi on #LPC/eSPI
 			chip superio/ite/it8613e
@@ -150,8 +185,8 @@ chip soc/intel/tigerlake
 					irq 0xf0 = 6
 				end
 			end
-		end
-		device ref p2sb on end
+		end # LPC
+		device ref p2sb off end
 		device ref hda on
 			subsystemid 0x10ec 0x3000
 			register "PchHdaAudioLinkHdaEnable" = "1"
