@@ -14,6 +14,8 @@ config BOARD_SPECIFIC_OPTIONS
 	select HAVE_OPTION_TABLE
 	select SOC_INTEL_COMMON_BLOCK_MEMINIT
 	select BOARD_ROMSIZE_KB_16384
+	select DRIVERS_I2C_GENERIC
+	select EC_ACPI
 
 config MAINBOARD_DIR
 	default "erying/tgl"
@@ -28,9 +30,6 @@ config CBFS_SIZE
 	default 0xA00000
 
 config CONSOLE_POST
-	default y
-
-config ONBOARD_VGA_IS_PRIMARY
 	default y
 
 config POST_DEVICE

@@ -2,7 +2,6 @@
 
 bootblock-y += bootblock.c
 
-romstage-y += romstage.c
-ramstage-y += gpio.c
-ramstage-y += hda_verb.c
+romstage-y += romstage_fsp_params.c
+
 ramstage-y += ramstage.c
