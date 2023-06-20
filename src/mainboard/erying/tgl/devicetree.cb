@@ -50,7 +50,17 @@ chip soc/intel/tigerlake
 	device cpu_cluster 0 on end
 	device domain 0 on
 		device ref system_agent on end
-		device ref igpu on end
+		device ref igpu on
+                        # DDIA = HDMI
+                        register "DdiPortAConfig" = "0"
+                        register "DdiPortAHpd" = "1"
+                        register "DdiPortADdc" = "1"
+
+                        # DDIB = HDMI
+                        register "DdiPortBConfig" = "0"
+                        register "DdiPortBHpd" = "1"
+                        register "DdiPortBDdc" = "1"
+                end
 
 		device ref dptf off
 			register "dptf_enable" = "0"
