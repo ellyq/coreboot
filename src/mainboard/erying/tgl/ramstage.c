@@ -25,4 +25,12 @@ void mainboard_silicon_init_params(FSP_S_CONFIG *params)
         params->CpuPcieRpMaxPayload[1] = 2;
         params->CpuPcieRpEnableCpm[1] = 1;
         params->CpuPcieRpPeerToPeerMode[1] = 1;
+
+
+        //VR limits
+        params->TdcCurrentLimit[0] = 1800;
+        params->TdcCurrentLimit[1] = 1800;
+
+        params->VrVoltageLimit[0] = 1800;
+        params->VrVoltageLimit[1] = 1800;
 }
