@@ -26,7 +26,7 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.SmbusEnable = 1;
 	mupd->FspmConfig.SmbusDynamicPowerGating = 1;
 	mupd->FspmConfig.PchIshEnable = 1;
-	mupd->FspmConfig.DmiMaxLinkSpeed = 0;
+	mupd->FspmConfig.DmiMaxLinkSpeed = 4;
 	mupd->FspmConfig.BdatEnable = 1;
 	mupd->FspmConfig.BdatTestType = 1;
 
@@ -39,13 +39,9 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.OcLock = 0;
 	mupd->FspmConfig.SaOcSupport = 1;
 
-	// Set CPU RP [NVME;x16] to 4.0 speed
-	mupd->FspmConfig.CpuPcieRpPcieSpeed[0] = 4;
-	mupd->FspmConfig.CpuPcieRpPcieSpeed[1] = 4;
-
 	/* XMP Configuration - Not functional yet! - Will result in FspNotify error 0x80000007! */
 	// mupd->FspmConfig.SpdProfileSelected = 2;	
-	mupd->FspmConfig.RefClk = 0; // 133MHz
+	mupd->FspmConfig.RefClk = 1; // 100MHz
 	mupd->FspmConfig.VddVoltage = 1350; // 1.35v
 	mupd->FspmConfig.Ratio = 0;
 	mupd->FspmConfig.RingDownBin = 0;
