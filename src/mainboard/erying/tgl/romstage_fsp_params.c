@@ -54,7 +54,8 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	// Testing
 	mupd->FspmConfig.VccInMaxLimit = 2250; //Some boards have ther vcore limited due to this value, issue also present in the Erying AMI BIOS
 
-	
+	//mupd->FspmConfig.CpuBclkOcFrequency = 10064;  //BCLK is set to 98 MHz, this should bring it to 100MHz - This also affects Erying original BIOS
+
 	//mupd->FspmConfig.DynamicMemoryChange = 1; 
 	//mupd->FspmConfig.SaVoltageMode = 1;
 	//mupd->FspmConfig.SaVoltageOverride = 1200;  // Any changes on this and the board does not boot, this might be required in order to reach some XMP profiles/Custom profiles
