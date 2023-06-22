@@ -20,12 +20,15 @@ DefinitionBlock(
 	{
 		#include <soc/intel/common/block/acpi/acpi/northbridge.asl>
 		#include <soc/intel/tigerlake/acpi/southbridge.asl>
+		#include <soc/intel/tigerlake/acpi/tcss.asl>
 	}
 
+<<<<<<< HEAD
+=======
+	#include <southbridge/intel/common/acpi/sleepstates.asl>
+>>>>>>> e145e41c7f (Revert commit changing DMI link, PCI-E is unstable)
 
 	Scope (\_SB.PCI0.LPCB)
 	{
 	}
-
-	#include <southbridge/intel/common/acpi/sleepstates.asl>
 }
