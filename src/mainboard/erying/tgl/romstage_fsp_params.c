@@ -26,12 +26,17 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.SmbusEnable = 1;
 	mupd->FspmConfig.SmbusDynamicPowerGating = 1;
 	mupd->FspmConfig.PchIshEnable = 1;
-	mupd->FspmConfig.DmiMaxLinkSpeed = 4;
+	mupd->FspmConfig.DmiMaxLinkSpeed = 2;
 	mupd->FspmConfig.BdatEnable = 1;
 	mupd->FspmConfig.BdatTestType = 1;
+	mupd->FspmConfig.DmaControlGuarantee = 0;
+
+	// Setting DMI to 3.0 speed causes NVME link issues, instability and data corruption.
+	mupd->FspmConfig.DmiMaxLinkSpeed = 2; 
 
 	// Performance settings
 	mupd->FspmConfig.VtdDisable = 0;
+	mupd->FspmConfig.VtdIgdEnable = 0;
 	mupd->FspmConfig.VmxEnable = 1;
 	mupd->FspmConfig.HyperThreading = 1;
 	mupd->FspmConfig.EnableAbove4GBMmio = 1;
