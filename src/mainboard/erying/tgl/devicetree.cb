@@ -16,7 +16,7 @@ chip soc/intel/tigerlake
 
 	# FSP configuration
 	register "eist_enable" = "1"
-	register "SaGv" = "SaGv_Enabled"
+	register "SaGv" = "SaGv_Disabled"
 	register "enable_c6dram" = "1"
 
 	# IT8613E doesn't support s0ix specification, only S3 is possible.
@@ -180,8 +180,8 @@ chip soc/intel/tigerlake
                                 register "FAN2.mode" = "FAN_SMART_AUTOMATIC" # CPU_FAN header
                                 register "FAN2.smart.tmpin"     = "1"
                                 register "FAN2.smart.tmp_off"   = "40"
-                                register "FAN2.smart.tmp_start" = "50"
-                                register "FAN2.smart.tmp_full"  = "72"
+                                register "FAN2.smart.tmp_start" = "86"
+                                register "FAN2.smart.tmp_full"  = "100"
                                 register "FAN2.smart.tmp_delta" = "2"
                                 register "FAN2.smart.pwm_start" = "26"
                                 register "FAN2.smart.slope"     = "24"

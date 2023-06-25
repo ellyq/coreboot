@@ -39,18 +39,28 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.SaOcSupport = 1;
 
 	/* XMP Configuration - Not functional yet! - Will result in FspNotify error 0x80000007! */
-	// mupd->FspmConfig.SpdProfileSelected = 2;	
+	mupd->FspmConfig.SpdProfileSelected = 1;	
 	mupd->FspmConfig.RefClk = 1; // 100MHz
 	mupd->FspmConfig.VddVoltage = 1350; // 1.35v
-	mupd->FspmConfig.Ratio = 0;
+	mupd->FspmConfig.Ratio = 24;
 	mupd->FspmConfig.RingDownBin = 0;
 	mupd->FspmConfig.GearRatio = 1;
 	mupd->FspmConfig.NModeSupport = 1;
 	
 	// Testing
+	// mupd->FspmConfig.SaGv = 4;
+
+	// mupd->FspmConfig.SaGvFreq[0] = 3200;
+	// mupd->FspmConfig.SaGvGear[0] = 2;
+	// mupd->FspmConfig.SaGvFreq[1] = 3200;
+	// mupd->FspmConfig.SaGvGear[1] = 2;
+	// mupd->FspmConfig.SaGvFreq[2] = 3200;
+	// mupd->FspmConfig.SaGvGear[2] = 2;
+	// mupd->FspmConfig.SaGvFreq[3] = 3200;
+	// mupd->FspmConfig.SaGvGear[3] = 1;
 	mupd->FspmConfig.VccInMaxLimit = 2250; //Some boards have ther vcore limited due to this value, issue also present in the Erying AMI BIOS
 
-	//mupd->FspmConfig.CpuBclkOcFrequency = 10064;  //BCLK is set to 98 MHz, this should bring it to 100MHz - This also affects Erying original BIOS
+	// mupd->FspmConfig.CpuBclkOcFrequency = 9900;  //BCLK is set to 98 MHz, this should bring it to 100MHz - This also affects Erying original BIOS
 
 	//mupd->FspmConfig.DynamicMemoryChange = 1; 
 	//mupd->FspmConfig.SaVoltageMode = 1;
