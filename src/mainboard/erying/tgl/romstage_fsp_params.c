@@ -26,8 +26,6 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.SmbusEnable = 1;
 	mupd->FspmConfig.SmbusDynamicPowerGating = 1;
 	mupd->FspmConfig.PchIshEnable = 1;
-<<<<<<< HEAD
-<<<<<<< HEAD
 	mupd->FspmConfig.DmiMaxLinkSpeed = 2;
 	mupd->FspmConfig.BdatEnable = 1;
 	mupd->FspmConfig.BdatTestType = 1;
@@ -39,11 +37,8 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	// Performance settings
 	mupd->FspmConfig.VtdDisable = 0;
 	mupd->FspmConfig.VtdIgdEnable = 0;
-=======
 	mupd->FspmConfig.DmiMaxLinkSpeed = 4;
-=======
 	mupd->FspmConfig.DmiMaxLinkSpeed = 2;
->>>>>>> 4f19d52458 (Set DMI to 2.0 speed, disable DMAR for iGPU)
 	mupd->FspmConfig.BdatEnable = 1;
 	mupd->FspmConfig.BdatTestType = 1;
 	mupd->FspmConfig.DmaControlGuarantee = 0;
@@ -53,11 +48,7 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 
 	// Performance settings
 	mupd->FspmConfig.VtdDisable = 0;
-<<<<<<< HEAD
->>>>>>> e145e41c7f (Revert commit changing DMI link, PCI-E is unstable)
-=======
 	mupd->FspmConfig.VtdIgdEnable = 0;
->>>>>>> 4f19d52458 (Set DMI to 2.0 speed, disable DMAR for iGPU)
 	mupd->FspmConfig.VmxEnable = 1;
 	mupd->FspmConfig.HyperThreading = 1;
 	mupd->FspmConfig.EnableAbove4GBMmio = 1;
