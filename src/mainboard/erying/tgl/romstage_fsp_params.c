@@ -44,7 +44,7 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 
 	/* XMP Configuration - Not functional yet! - Will result in FspNotify error 0x80000007! */
 	// mupd->FspmConfig.SpdProfileSelected = 2;	
-	mupd->FspmCongig.DdrFreqLimit = 3200;
+	mupd->FspmConfig.DdrFreqLimit = 3200;
 	mupd->FspmConfig.RefClk = 1; // 100MHz
 	mupd->FspmConfig.VddVoltage = 1350; // 1.35v
 	mupd->FspmConfig.Ratio = 0;
