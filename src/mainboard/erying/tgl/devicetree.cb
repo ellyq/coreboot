@@ -1,13 +1,12 @@
 chip soc/intel/tigerlake
 
 	# Power limits/thermals - adjust according to your needs, but beware of VRM cooling!
-	## 6_CORE = i5
+	# H_6_CORE means Core i5, H_8_CORE means Core i7 or i9.
 	register "power_limits_config[POWER_LIMITS_H_6_CORE]" = "{
 	.tdp_pl1_override = 45,
 	.tdp_pl2_override = 109,
 	}"
 
-	## 8_CORE = i7/i9
 	register "power_limits_config[POWER_LIMITS_H_8_CORE]" = "{
 	.tdp_pl1_override = 45,
 	.tdp_pl2_override = 109,
@@ -16,11 +15,14 @@ chip soc/intel/tigerlake
 
 	# FSP configuration
 	register "eist_enable" = "1"
+	register "dptf_enable" = "0"
 	register "SaGv" = "SaGv_Enabled"
 	register "enable_c6dram" = "1"
+	register "SkipExtGfxScan" = "0"
 
 	# IT8613E doesn't support s0ix specification, only S3 is possible.
-	## Sleep is broken, supposedly RAM loses power in S3 state. Make sure to disable it in your OS for the time being.
+	# Sleep is broken, supposedly RAM loses power in S3 state.
+	# Please make sure to disable it in your OS for the time being to avoid data loss.
 	register "s0ix_enable" = "0" 
 
 	# Power
@@ -30,7 +32,8 @@ chip soc/intel/tigerlake
         register "deep_s5_enable_dc" = "1"
         register "deep_sx_config" = "DSX_EN_WAKE_PIN"
 
-        # Copied from sys76/oryp8, fixes power/reset buttons
+        # Copied from sys76/oryp8, fixes power/reset buttons.
+	# TODO: Set FiVr (Fully Integrated Voltage Regulators) by hand.
         	register "ext_fivr_settings" = "{
 		.configure_ext_fivr = 1,
 		.v1p05_enable_bitmap = 0,
@@ -41,30 +44,37 @@ chip soc/intel/tigerlake
 		.vnn_sx_voltage_mv = 1050,
 	}"
 
-        # Disable hybrid storage, Optane will work as NVME
-	register "HybridStorageMode" = "0"
-
-	# GPU settings
-	register "SkipExtGfxScan" = "0"
-
 	device cpu_cluster 0 on end
 	device domain 0 on
 		device ref system_agent on end
 		device ref igpu on
-                        # DDIA = HDMI
-                        register "DdiPortAConfig" = "0"
-                        register "DdiPortAHpd" = "1"
-                        register "DdiPortADdc" = "1"
+			# Mappings according to information i915 pulled from VBT while debugging DRM.
+			# Since this board doesn't have any internal headers, enable HPD and DDC on all ports.
+			# HPD = HotPlug Detect, DDC = Display Data Channel.
 
-                        # DDIB = HDMI
-                        register "DdiPortBConfig" = "0"
-                        register "DdiPortBHpd" = "1"
-                        register "DdiPortBDdc" = "1"
-                end
+			# DDI_B = DP
+			register "DdiPortBConfig" = "1"
+			register "DdiPortBHpd" = "1"
+			register "DdiPortBDdc" = "1"
 
-		device ref dptf off
-			register "dptf_enable" = "0"
+			# DDI_D = HDMI/DVI
+			register "DdiPortDConfig" = "1"
+			register "DdiPortDHpd" = "1"
+			register "DdiPortDDdc" = "1"
+
+			# DDI_E = HDMI/DVI
+			register "DdiPortEConfig" = "1"
+			register "DdiPortEHpd" = "1"
+			register "DdiPortEDdc" = "1"
 		end
+		device ref dptf off end
+		device ref gna on end
+
+		# PCI-E configuration (PEG and RootPorts).
+		# Set all clock requests as "NOTUSED" for debugging purposes.
+		# TODO1: Program Interrupt Controller (x2apic) to route IRQs correctly.
+		# TODO2: Find RP corresponding to PCI-E x1 routed trough PCH.
+		# TODO3: Test CNVi (Intel's protocol for (some) Intel Wireless adapters).
 
 		# M.2 Gen4 (SoC)
 		device ref peg0 on
@@ -78,22 +88,12 @@ chip soc/intel/tigerlake
 			register "PcieClkSrcClkReq[0]" = "PCIE_CLK_NOTUSED"
 		end
 
-		# Realtek GbE
-		device ref pcie_rp11 on
-			register "PcieRpEnable[10]" = "1"
-			register "PcieRpLtrEnable[10]" = "1"
-			register "PcieClkSrcUsage[3]" = "0x80"
-			register "PcieClkSrcClkReq[3]" = "3"
-		end
-
 		# M.2 Gen3 (Chipset)
 		device ref pcie_rp5 on
 			register "PcieRpEnable[4]" = "1"
-			register "PcieRpLtrEnable[4]" = "1"
-			register "PcieRpSlotImplemented[4]" = "1"
 			register "PcieRpAdvancedErrorReporting[4]" = "1"
-			register "PcieClkSrcUsage[4]" = "4"
-			register "PcieClkSrcClkReq[4]" = "4"
+			register "PcieClkSrcUsage[4]" = "8"
+			register "PcieClkSrcClkReq[4]" = "PCIE_CLK_NOTUSED"
 		end
 
 		# M.2 Gen3 Wifi (Chipset) 1d.0
@@ -106,6 +106,34 @@ chip soc/intel/tigerlake
 			register "PcieClkSrcClkReq[5]" = "5"
 		end
 
+		# Untested! Here be dragons!
+		device ref cnvi_wifi on
+			register "CnviBtCore" = "1"
+			register "CnviBtAudioOffload" = "1"
+                        chip drivers/wifi/generic
+                                register "wake" = "GPE0_PME_B0"
+                                device generic 0 on end
+                        end
+		end
+	
+		# Realtek GbE
+		device ref pcie_rp11 on
+			register "PcieRpEnable[10]" = "1"
+			register "PcieRpLtrEnable[10]" = "1"
+			register "PcieClkSrcUsage[3]" = "0x80"
+			register "PcieClkSrcClkReq[3]" = "3"
+		end
+
+		# USB configuration.
+		# TODO: Figure out what kind of cursed shenanigans Erying came up with.
+		# USB3.2 mode seems to be routed to TCSS (north_xhci), and FP USB3 works correctly.
+		# Using USB3 ports on MB I/O shield will cause random system lockups at the moment.
+		# You have been warned! (not like you should be running this code in production yet :))
+		
+		device ref north_xhci on
+			 register "TcssXhciEn" = "1" 
+		end
+
 		device ref south_xhci on
 			# USB2
 			register "usb2_ports[2]" = "USB2_PORT_MID(OC_SKIP)" # NIC left
@@ -113,39 +141,42 @@ chip soc/intel/tigerlake
 			register "usb2_ports[4]" = "USB2_PORT_MID(OC_SKIP)" # FP1
 			register "usb2_ports[5]" = "USB2_PORT_MID(OC_SKIP)" # FP2
 
-			# USB3
-			register "usb3_ports[4]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear top left
-			register "usb2_ports[10]" = "USB2_PORT_MID(OC_SKIP)"
+			# Fake(?) USB3 ports
+			register "usb3_ports[4]" = "USB3_PORT_DEFAULT(OC_SKIP)"
+			register "usb2_ports[10]" = "USB2_PORT_MID(OC_SKIP)" # Rear top left
 
 			register "usb3_ports[5]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear top right
-			register "usb2_ports[11]" = "USB2_PORT_MID(OC_SKIP)"
+			register "usb2_ports[11]" = "USB2_PORT_MID(OC_SKIP)" # Rear top right
 
+			# Real USB3 ports
 			register "usb3_ports[1]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear bottom left
 			register "usb2_ports[1]" = "USB2_PORT_MID(OC_SKIP)"
 			
 			register "usb3_ports[0]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear bottom right
 			register "usb2_ports[0]" = "USB2_PORT_MID(OC_SKIP)"
 
-			register "usb3_ports[8]" = "USB3_PORT_DEFAULT(OC_SKIP)" # USB3 FP1
+			register "usb3_ports[3]" = "USB3_PORT_DEFAULT(OC_SKIP)" # USB3 FP1
 			register "usb2_ports[8]" = "USB2_PORT_MID(OC_SKIP)"
 			
-			register "usb3_ports[9]" = "USB3_PORT_DEFAULT(OC_SKIP)" # USB3 FP2
+			register "usb3_ports[2]" = "USB3_PORT_DEFAULT(OC_SKIP)" # USB3 FP2
 			register "usb2_ports[9]" = "USB2_PORT_MID(OC_SKIP)"
 
                 end
 
 		device ref shared_ram on end
+		device ref heci1 on end # Management Engine
 
 		device ref sata on
-			 register "SataPortsEnable[0]" = "1"
-			 register "SataPortsEnable[1]" = "1"
-			 register "SataPortsEnable[2]" = "1"
-			 register "SataPortsEnable[3]" = "1"
-			 register "SataSalpSupport" = "1"
-			 register "SataPortsDevSlp[0]" = "1"
-			 register "SataPortsDevSlp[1]" = "1"
-			 register "SataPortsDevSlp[2]" = "1"
-			 register "SataPortsDevSlp[3]" = "1"
+			register "SataMode" = "0" # AHCI
+			register "SataPortsEnable[0]" = "1"
+			register "SataPortsEnable[1]" = "1"
+			register "SataPortsEnable[2]" = "1"
+			register "SataPortsEnable[3]" = "1"
+			register "SataSalpSupport" = "1"
+			register "SataPortsDevSlp[0]" = "1"
+			register "SataPortsDevSlp[1]" = "1"
+			register "SataPortsDevSlp[2]" = "1"
+			register "SataPortsDevSlp[3]" = "1"
 		end
 
 		device ref uart0 on
@@ -164,20 +195,22 @@ chip soc/intel/tigerlake
 					irq 0x70 = 4
 					irq 0xf0 = 1
 				end
-				device pnp 2e.4 on # Environment
+				device pnp 2e.4 on 	# Environment
 					io 0x60 = 0xa30
 					io 0x62 = 0xa20
 					irq 0x70 = 0
 					irq 0xf0 = 8
 
-				# IT8613E seems to be somewhat compatible with IT8603E module in linux
+				# IT8613E seems to be somewhat compatible with IT8603E module in Linux
 				# modprobe it87 force_id=0x8603
 				# Fans can be controlled using pwmconfig!
-                                register "TMPIN1.mode"    = "THERMAL_RESISTOR" # CPU TEMP_IN
+				# TODO: Find correct CPU_TEMP_IN sensor
+
+                                register "TMPIN1.mode"    = "THERMAL_RESISTOR" 		# CPU TEMP_IN
 				register "TMPIN2.mode"    = "THERMAL_RESISTOR"
                                 register "TMPIN3.mode"    = "THERMAL_MODE_DISABLED"
 				
-                                register "FAN2.mode" = "FAN_SMART_AUTOMATIC" # CPU_FAN header
+                                register "FAN2.mode" = "FAN_SMART_AUTOMATIC"		# CPU_FAN header
                                 register "FAN2.smart.tmpin"     = "1"
                                 register "FAN2.smart.tmp_off"   = "40"
                                 register "FAN2.smart.tmp_start" = "50"
@@ -187,6 +220,7 @@ chip soc/intel/tigerlake
                                 register "FAN2.smart.slope"     = "24"
 				end
 
+				# This motherboard doesn't have any PS/2 ports, disable it.
 				device pnp 2e.5 off end # Keyboard
 				device pnp 2e.6 off end # Mouse
 
@@ -202,14 +236,13 @@ chip soc/intel/tigerlake
 					irq 0xf0 = 6
 				end
 			end
-		end # LPC
-		device ref p2sb off end
+		end		# LPC
+		device ref p2sb on end
 		device ref hda on
 			subsystemid 0x10ec 0x3000
 			register "PchHdaAudioLinkHdaEnable" = "1"
 			register "PchHdaDspEnable" = "0"
 		end
 		device ref smbus on end
-		device ref fast_spi on end
 	end
 end
