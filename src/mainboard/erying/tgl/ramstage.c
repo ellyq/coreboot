@@ -12,20 +12,26 @@ void mainboard_silicon_init_params(FSP_S_CONFIG *params)
         // PEG0 - Gen4 NVME
 	params->CpuPcieRpSlotImplemented[0] = 1;
         params->CpuPcieRpAdvancedErrorReporting[0] = 1;
-	params->CpuPcieRpMultiVcEnabled[0] = 1;
+	params->CpuPcieRpAcsEnabled[0] = 1;
         params->CpuPcieRpMaxPayload[0] = 2;
-        params->CpuPcieRpPeerToPeerMode[0] = 1;
+	params->CpuPcieRpAspm[0] = 0;
 
         // PEG1 - PCI-E x16
 	params->CpuPcieRpSlotImplemented[1] = 1;
         params->CpuPcieRpAdvancedErrorReporting[1] = 1;
-	params->CpuPcieRpMultiVcEnabled[1] = 1;
+	params->CpuPcieRpAcsEnabled[1] = 1;
         params->CpuPcieRpMaxPayload[1] = 2;
-        params->CpuPcieRpPeerToPeerMode[1] = 1;
+	params->CpuPcieRpAspm[1] = 0;
 
-	// DMI/FSP settings
-	params->PcieRpFunctionSwap = 0;
-	params->CpuPcieRpFunctionSwap = 0;
+	// DMI (Link between SoC and PCH)
 	params->PchLegacyIoLowLatency = 1;
 	params->PchDmiAspmCtrl = 0;
+
+	// FSP settings
+	params->SataLedEnable = 1;
+	params->AmtEnabled = 0;
+	params->HybridStorageMode = 1;
+	params->ITbtPcieTunnelingForUsb4 = 0;
+	params->PcieRpFunctionSwap = 0;
+	params->CpuPcieRpFunctionSwap = 0;
 }
