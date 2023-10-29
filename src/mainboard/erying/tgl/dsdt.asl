@@ -20,6 +20,8 @@ DefinitionBlock(
 	{
 		#include <soc/intel/common/block/acpi/acpi/northbridge.asl>
 		#include <soc/intel/tigerlake/acpi/southbridge.asl>
+		#include <soc/intel/tigerlake/acpi/tcss.asl>
+		#include <soc/intel/common/block/acpi/acpi/gna.asl>
 	}
 
 	Scope (\_SB.PCI0.LPCB)
