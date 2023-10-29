@@ -23,33 +23,19 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 
 	// FSP Configuration
 	mupd->FspmConfig.UserBd = 1;
-	mupd->FspmConfig.SmbusEnable = 1;
-	mupd->FspmConfig.SmbusDynamicPowerGating = 1;
-	mupd->FspmConfig.PchIshEnable = 1;
-	mupd->FspmConfig.DmiMaxLinkSpeed = 2;
-	mupd->FspmConfig.BdatEnable = 1;
-	mupd->FspmConfig.BdatTestType = 1;
-	mupd->FspmConfig.DmaControlGuarantee = 0;
-
-	// Setting DMI to 3.0 speed causes NVME link issues, instability and data corruption.
-	mupd->FspmConfig.DmiMaxLinkSpeed = 2; 
-
-	// Performance settings
 	mupd->FspmConfig.VtdDisable = 0;
-	mupd->FspmConfig.VtdIgdEnable = 0;
-	mupd->FspmConfig.DmiMaxLinkSpeed = 4;
-	mupd->FspmConfig.DmiMaxLinkSpeed = 2;
-	mupd->FspmConfig.BdatEnable = 1;
-	mupd->FspmConfig.BdatTestType = 1;
-	mupd->FspmConfig.DmaControlGuarantee = 0;
-
-	// Setting DMI to 3.0 speed causes NVME link issues, instability and data corruption.
-	mupd->FspmConfig.DmiMaxLinkSpeed = 2; 
-
-	// Performance settings
-	mupd->FspmConfig.VtdDisable = 0;
-	mupd->FspmConfig.VtdIgdEnable = 0;
+	mupd->FspmConfig.VtdIgdEnable = 0; /* Disable VT-d for iGPU to avoid stability issues */
 	mupd->FspmConfig.VmxEnable = 1;
+	mupd->FspmConfig.SmbusEnable = 1;
+	mupd->FspmConfig.PchIshEnable = 1;
+	mupd->FspmConfig.BdatEnable = 1;
+
+	// DMI (SoC - PCH) Link settings
+	mupd->FspmConfig.DmiMaxLinkSpeed = 3;
+        mupd->FspmConfig.DmiAspm = 0;
+        mupd->FspmConfig.DmiAspmCtrl = 0;
+
+	// Performance settings
 	mupd->FspmConfig.HyperThreading = 1;
 	mupd->FspmConfig.EnableAbove4GBMmio = 1;
 	mupd->FspmConfig.OcSupport = 1;
@@ -58,6 +44,7 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 
 	/* XMP Configuration - Not functional yet! - Will result in FspNotify error 0x80000007! */
 	// mupd->FspmConfig.SpdProfileSelected = 2;	
+	mupd->FspmCongig.DdrFreqLimit = 3200;
 	mupd->FspmConfig.RefClk = 1; // 100MHz
 	mupd->FspmConfig.VddVoltage = 1350; // 1.35v
 	mupd->FspmConfig.Ratio = 0;
