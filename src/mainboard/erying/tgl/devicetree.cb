@@ -51,21 +51,20 @@ chip soc/intel/tigerlake
 			# Mappings according to information i915 pulled from VBT while debugging DRM.
 			# Since this board doesn't have any internal headers, enable HPD and DDC on all ports.
 			# HPD = HotPlug Detect, DDC = Display Data Channel.
+			# TODO: Test the mapping, FSP definitions doesn't match those discovered by Linux.
 
 			# DDI_B = DP
-			register "DdiPortBConfig" = "1"
+			register "DdiPortBConfig" = "DDI_PORT_CFG_NO_LFP"
 			register "DdiPortBHpd" = "1"
 			register "DdiPortBDdc" = "1"
 
 			# DDI_D = HDMI/DVI
-			register "DdiPortDConfig" = "1"
-			register "DdiPortDHpd" = "1"
-			register "DdiPortDDdc" = "1"
+			register "DdiPort1Hpd" = "1"
+			register "DdiPort1Ddc" = "1"
 
 			# DDI_E = HDMI/DVI
-			register "DdiPortEConfig" = "1"
-			register "DdiPortEHpd" = "1"
-			register "DdiPortEDdc" = "1"
+			register "DdiPort2Hpd" = "1"
+			register "DdiPort2Ddc" = "1"
 		end
 		device ref dptf off end
 		device ref gna on end
