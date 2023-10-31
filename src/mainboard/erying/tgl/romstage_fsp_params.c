@@ -4,23 +4,23 @@
 #include <soc/romstage.h>
 #include "gpio.h"
 
+static const struct mb_cfg mem_config = {
+	.type = MEM_TYPE_DDR4,
+	.ddr4_config = { .dq_pins_interleaved = true },
+};
+
+static const struct mem_spd spd_info = {
+	.topo = MEM_TOPO_DIMM_MODULE,
+	.smbus = {
+		[0] = { .addr_dimm[0] = 0x50, },
+		[1] = { .addr_dimm[0] = 0x52, },
+	},
+};
+
+const bool half_populated = false;
+
 void mainboard_memory_init_params(FSPM_UPD *mupd)
 {
-
-	static const struct mb_cfg mem_type = {
-		.type = MEM_TYPE_DDR4,
-		.ddr4_config = { .dq_pins_interleaved = true },
-	};
-	static const struct mem_spd spd_info = {
-        	.topo = MEM_TOPO_DIMM_MODULE,
-		.smbus = {
-			[0] = { .addr_dimm[0] = 0x50, },
-			[1] = { .addr_dimm[0] = 0x52, },
-		},
-	};
-	const bool half_populated = false;
-        memcfg_init(mupd, &mem_type, &spd_info, half_populated);
-
 	// FSP Configuration
 	mupd->FspmConfig.UserBd = 1;
 	mupd->FspmConfig.VtdDisable = 0;
@@ -42,15 +42,27 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.OcLock = 0;
 	mupd->FspmConfig.SaOcSupport = 1;
 
-	/* XMP Configuration - Not functional yet! - Will result in FspNotify error 0x80000007! */
-	// mupd->FspmConfig.SpdProfileSelected = 2;	
+	// Memory configuration
+	mupd->FspmConfig.SpdProfileSelected = 2; // XMP Profile 1
 	mupd->FspmConfig.DdrFreqLimit = 3200;
-	mupd->FspmConfig.RefClk = 1; // 100MHz
+
+	mupd->FspmConfig.SaGv = 4;
+	mupd->FspmConfig.SaGvFreq[0] = 3000;
+	mupd->FspmConfig.SaGvGear[0] = 1;
+	mupd->FspmConfig.SaGvFreq[1] = 3000;
+	mupd->FspmConfig.SaGvGear[1] = 2;
+	mupd->FspmConfig.SaGvFreq[2] = 3200;
+	mupd->FspmConfig.SaGvGear[2] = 1;
+	mupd->FspmConfig.SaGvFreq[3] = 3200;
+	mupd->FspmConfig.SaGvGear[3] = 2;
+
+	mupd->FspmConfig.RefClk = 0; // 133MHz
 	mupd->FspmConfig.VddVoltage = 1350; // 1.35v
 	mupd->FspmConfig.Ratio = 0;
 	mupd->FspmConfig.RingDownBin = 0;
-	mupd->FspmConfig.GearRatio = 1;
-	mupd->FspmConfig.NModeSupport = 1;
+	mupd->FspmConfig.GearRatio = 2;
+	mupd->FspmConfig.NModeSupport = 1; // Board type is 1N
 
+	memcfg_init(mupd, &mem_config, &spd_info, half_populated);
 	gpio_configure_pads(gpio_table, ARRAY_SIZE(gpio_table));
 }
