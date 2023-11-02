@@ -29,6 +29,7 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.SmbusEnable = 1;
 	mupd->FspmConfig.PchIshEnable = 1;
 	mupd->FspmConfig.BdatEnable = 1;
+	mupd->FspmConfig.ScanExtGfxForLegacyOpRom = 1;
 
 	// DMI (SoC - PCH) Link settings
 	mupd->FspmConfig.DmiMaxLinkSpeed = 3;
