@@ -48,16 +48,16 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.DdrFreqLimit = 3200;
 
 	mupd->FspmConfig.SaGv = 4;
-	mupd->FspmConfig.SaGvFreq[0] = 3000;
+	mupd->FspmConfig.SaGvFreq[0] = 2133;
 	mupd->FspmConfig.SaGvGear[0] = 1;
-	mupd->FspmConfig.SaGvFreq[1] = 3000;
+	mupd->FspmConfig.SaGvFreq[1] = 2400;
 	mupd->FspmConfig.SaGvGear[1] = 2;
 	mupd->FspmConfig.SaGvFreq[2] = 3200;
 	mupd->FspmConfig.SaGvGear[2] = 1;
 	mupd->FspmConfig.SaGvFreq[3] = 3200;
 	mupd->FspmConfig.SaGvGear[3] = 2;
 
-	mupd->FspmConfig.RefClk = 0; // 133MHz
+	mupd->FspmConfig.RefClk = 1; // 100MHz
 	mupd->FspmConfig.VddVoltage = 1350; // 1.35v
 	mupd->FspmConfig.Ratio = 0;
 	mupd->FspmConfig.RingDownBin = 0;
