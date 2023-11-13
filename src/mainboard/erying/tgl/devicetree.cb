@@ -1,7 +1,7 @@
 chip soc/intel/tigerlake
 
 	# Power limits/thermals - adjust according to your needs, but beware of VRM cooling!
-	# H_6_CORE means Core i5, H_8_CORE means Core i7 or i9.
+	# H_6_CORE means Core i5, H_8_CORE means Core i7 or i9. Stock PL1/PL2: 45/109W.
 	register "power_limits_config[POWER_LIMITS_H_6_CORE]" = "{
 	.tdp_pl1_override = 45,
 	.tdp_pl2_override = 109,
@@ -23,7 +23,7 @@ chip soc/intel/tigerlake
 	# IT8613E doesn't support s0ix specification, only S3 is possible.
 	# Sleep is broken, supposedly RAM loses power in S3 state.
 	# Please make sure to disable it in your OS for the time being to avoid data loss.
-	register "s0ix_enable" = "0" 
+	register "s0ix_enable" = "0"
 
 	# Power
         register "deep_s3_enable_ac" = "1"
@@ -48,26 +48,17 @@ chip soc/intel/tigerlake
 	device domain 0 on
 		device ref system_agent on end
 		device ref igpu on
-			# Mappings according to information i915 pulled from VBT while debugging DRM.
-			# Since this board doesn't have any internal headers, enable HPD and DDC on all ports.
-			# HPD = HotPlug Detect, DDC = Display Data Channel.
-			# TODO: Test the mapping, FSP definitions doesn't match those discovered by Linux.
-
-			# DDI_B = DP
-			register "DdiPortBConfig" = "DDI_PORT_CFG_NO_LFP"
+			register "DdiPortBConfig" = "DDI_PORT_CFG_NO_LFP" # DP
 			register "DdiPortBHpd" = "1"
 			register "DdiPortBDdc" = "1"
 
-			# DDI_D = HDMI/DVI
-			register "DdiPort1Hpd" = "1"
-			register "DdiPort1Ddc" = "1"
+			register "DdiPortCHpd" = "0" # HDMI
+			register "DdiPortCDdc" = "1"
 
-			# DDI_E = HDMI/DVI
-			register "DdiPort2Hpd" = "1"
-			register "DdiPort2Ddc" = "1"
+			register "DdiPort1Hpd" = "1" # HDMI
+			register "DdiPort1Ddc" = "1"
 		end
 		device ref dptf off end
-		device ref gna on end
 
 		# PCI-E configuration (PEG and RootPorts).
 		# Set all clock requests as "NOTUSED" for debugging purposes.
@@ -91,7 +82,7 @@ chip soc/intel/tigerlake
 		device ref pcie_rp5 on
 			register "PcieRpEnable[4]" = "1"
 			register "PcieRpAdvancedErrorReporting[4]" = "1"
-			register "PcieClkSrcUsage[4]" = "8"
+			register "PcieClkSrcUsage[4]" = "0x80"
 			register "PcieClkSrcClkReq[4]" = "PCIE_CLK_NOTUSED"
 		end
 
@@ -114,7 +105,7 @@ chip soc/intel/tigerlake
                                 device generic 0 on end
                         end
 		end
-	
+
 		# Realtek GbE
 		device ref pcie_rp11 on
 			register "PcieRpEnable[10]" = "1"
@@ -128,42 +119,76 @@ chip soc/intel/tigerlake
 		# USB3.2 mode seems to be routed to TCSS (north_xhci), and FP USB3 works correctly.
 		# Using USB3 ports on MB I/O shield will cause random system lockups at the moment.
 		# You have been warned! (not like you should be running this code in production yet :))
-		
+
 		device ref north_xhci on
-			 register "TcssXhciEn" = "1" 
+			 register "TcssXhciEn" = "1"
 		end
 
 		device ref south_xhci on
 			# USB2
-			register "usb2_ports[2]" = "USB2_PORT_MID(OC_SKIP)" # NIC left
-			register "usb2_ports[3]" = "USB2_PORT_MID(OC_SKIP)" # NIC right
-			register "usb2_ports[4]" = "USB2_PORT_MID(OC_SKIP)" # FP1
-			register "usb2_ports[5]" = "USB2_PORT_MID(OC_SKIP)" # FP2
+			register "usb2_ports[2]" = "USB2_PORT_MID(OC2)" # NIC left
+			register "usb2_ports[3]" = "USB2_PORT_MID(OC2)" # NIC right
+			register "usb2_ports[4]" = "USB2_PORT_MID(OC2)" # FP1
+			register "usb2_ports[5]" = "USB2_PORT_MID(OC2)" # FP2
 
 			# Fake(?) USB3 ports
-			register "usb3_ports[4]" = "USB3_PORT_DEFAULT(OC_SKIP)"
-			register "usb2_ports[10]" = "USB2_PORT_MID(OC_SKIP)" # Rear top left
+			register "usb3_ports[4]" = "USB3_PORT_DEFAULT(OC0)"
+			register "usb2_ports[10]" = "USB2_PORT_MID(OC0)" # Rear top left
 
-			register "usb3_ports[5]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear top right
-			register "usb2_ports[11]" = "USB2_PORT_MID(OC_SKIP)" # Rear top right
+			register "usb3_ports[5]" = "USB3_PORT_DEFAULT(OC0)" # Rear top right
+			register "usb2_ports[11]" = "USB2_PORT_MID(OC0)" # Rear top right
 
 			# Real USB3 ports
-			register "usb3_ports[1]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear bottom left
-			register "usb2_ports[1]" = "USB2_PORT_MID(OC_SKIP)"
-			
-			register "usb3_ports[0]" = "USB3_PORT_DEFAULT(OC_SKIP)" # Rear bottom right
-			register "usb2_ports[0]" = "USB2_PORT_MID(OC_SKIP)"
+			register "usb3_ports[1]" = "USB3_PORT_DEFAULT(OC0)" # Rear bottom left
+			register "usb2_ports[1]" = "USB2_PORT_MID(OC0)"
 
-			register "usb3_ports[3]" = "USB3_PORT_DEFAULT(OC_SKIP)" # USB3 FP1
-			register "usb2_ports[8]" = "USB2_PORT_MID(OC_SKIP)"
-			
-			register "usb3_ports[2]" = "USB3_PORT_DEFAULT(OC_SKIP)" # USB3 FP2
-			register "usb2_ports[9]" = "USB2_PORT_MID(OC_SKIP)"
+			register "usb3_ports[0]" = "USB3_PORT_DEFAULT(OC0)" # Rear bottom right
+			register "usb2_ports[0]" = "USB2_PORT_MID(OC0)"
+
+			register "usb3_ports[3]" = "USB3_PORT_DEFAULT(OC0)" # USB3 FP1
+			register "usb2_ports[8]" = "USB2_PORT_MID(OC0)"
+
+			register "usb3_ports[2]" = "USB3_PORT_DEFAULT(OC0)" # USB3 FP2
+			register "usb2_ports[9]" = "USB2_PORT_MID(OC0)"
 
                 end
 
 		device ref shared_ram on end
-		device ref heci1 on end # Management Engine
+
+		# There are no devices hanging off of i2c buses, but they're needed for DDI (DP/HDMI).
+		register "common_soc_config" = "{
+			.i2c[0] = { .speed = I2C_SPEED_FAST, },
+			.i2c[1] = { .speed = I2C_SPEED_FAST, },
+			.i2c[2] = { .speed = I2C_SPEED_FAST, },
+			.i2c[3] = { .speed = I2C_SPEED_FAST, },
+			.i2c[5] = { .speed = I2C_SPEED_FAST, },
+		}"
+
+		device ref i2c0 on
+			register "SerialIoI2cMode[PchSerialIoIndexI2C0]" = "PchSerialIoPci"
+		end
+
+		device ref i2c1 on
+			register "SerialIoI2cMode[PchSerialIoIndexI2C1]" = "PchSerialIoPci"
+		end
+
+		device ref i2c2 on
+			register "SerialIoI2cMode[PchSerialIoIndexI2C2]" = "PchSerialIoPci"
+		end
+
+		device ref i2c3 on
+			register "SerialIoI2cMode[PchSerialIoIndexI2C3]" = "PchSerialIoPci"
+		end
+
+		device ref i2c4 on
+			register "SerialIoI2cMode[PchSerialIoIndexI2C4]" = "PchSerialIoPci"
+		end
+
+		device ref i2c5 on
+			register "SerialIoI2cMode[PchSerialIoIndexI2C5]" = "PchSerialIoPci"
+		end
+
+		device ref heci1 off end # Management Engine
 
 		device ref sata on
 			register "SataMode" = "0" # AHCI
@@ -208,7 +233,7 @@ chip soc/intel/tigerlake
                                 register "TMPIN1.mode"    = "THERMAL_RESISTOR" 		# CPU TEMP_IN
 				register "TMPIN2.mode"    = "THERMAL_RESISTOR"
                                 register "TMPIN3.mode"    = "THERMAL_MODE_DISABLED"
-				
+
                                 register "FAN2.mode" = "FAN_SMART_AUTOMATIC"		# CPU_FAN header
                                 register "FAN2.smart.tmpin"     = "1"
                                 register "FAN2.smart.tmp_off"   = "40"

@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <acpi/acpi.h>
-
 DefinitionBlock(
 	"dsdt.aml",
 	"DSDT",
@@ -21,12 +20,11 @@ DefinitionBlock(
 		#include <soc/intel/common/block/acpi/acpi/northbridge.asl>
 		#include <soc/intel/tigerlake/acpi/southbridge.asl>
 		#include <soc/intel/tigerlake/acpi/tcss.asl>
-		#include <soc/intel/common/block/acpi/acpi/gna.asl>
 	}
+
+	#include <southbridge/intel/common/acpi/sleepstates.asl>
 
 	Scope (\_SB.PCI0.LPCB)
 	{
 	}
-
-	#include <southbridge/intel/common/acpi/sleepstates.asl>
 }

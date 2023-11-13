@@ -60,7 +60,7 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.RefClk = 1; // 100MHz
 	mupd->FspmConfig.VddVoltage = 1350; // 1.35v
 	mupd->FspmConfig.Ratio = 0;
-	mupd->FspmConfig.RingDownBin = 0;
+	mupd->FspmConfig.RingDownBin = 1;
 	mupd->FspmConfig.GearRatio = 2;
 	mupd->FspmConfig.NModeSupport = 1; // Board type is 1N
 
