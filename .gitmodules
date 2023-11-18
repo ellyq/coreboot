@@ -62,18 +62,15 @@ path = 3rdparty/stm
 url = https://review.coreboot.org/STM
 branch = stmpe
 [submodule "util/goswid"]
-<<<<<<< HEAD
-	path = util/goswid
-	url = ../goswid
-	branch = trunk
+path = util/goswid
+url = ../goswid
+branch = trunk
 [submodule "src/vendorcode/amd/opensil/genoa_poc/opensil"]
-	path = src/vendorcode/amd/opensil/genoa_poc/opensil
-	url = ../opensil_genoa_poc.git
-=======
+path = src/vendorcode/amd/opensil/genoa_poc/opensil
+url = ../opensil_genoa_poc.git
 path = util/goswid
 url = https://review.coreboot.org/goswid
 branch = trunk
 [submodule "3rdparty/purism-blobs"]
 path = 3rdparty/purism-blobs
 url = https://source.puri.sm/coreboot/purism-blobs.git
->>>>>>> 5276ca845d (Replace gitmodules with upstream, add descriptor)
