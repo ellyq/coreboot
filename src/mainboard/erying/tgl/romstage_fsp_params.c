@@ -23,13 +23,22 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 {
 	// FSP Configuration
 	mupd->FspmConfig.UserBd = 1;
-	mupd->FspmConfig.VtdDisable = 0;
-	mupd->FspmConfig.VtdIgdEnable = 0; /* Disable VT-d for iGPU to avoid stability issues */
 	mupd->FspmConfig.VmxEnable = 1;
 	mupd->FspmConfig.SmbusEnable = 1;
 	mupd->FspmConfig.PchIshEnable = 1;
 	mupd->FspmConfig.BdatEnable = 1;
 	mupd->FspmConfig.ScanExtGfxForLegacyOpRom = 1;
+
+	mupd->FspmConfig.PrimaryDisplay = 3; // Auto
+	mupd->FspmConfig.VtdDisable = 0;
+	mupd->FspmConfig.GttSize = 3; // 8MB
+	mupd->FspmConfig.ApertureSize = 3; // 512MB
+	mupd->FspmConfig.GtPsmiSupport = 0;
+	mupd->FspmConfig.IgdDvmt50PreAlloc = 2; // 64MB
+	// mupd->FspmConfig.IgdDvmtMemSize = 2; // 256MB - doesn't exist in FSP headers? what the heck
+	mupd->FspmConfig.DfdRestoreEnable = 0;
+	mupd->FspmConfig.VmxEnable = 1;
+
 
 	// DMI (SoC - PCH) Link settings
 	mupd->FspmConfig.DmiMaxLinkSpeed = 3;
@@ -65,7 +74,7 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.SafeMode = 0;
 	mupd->FspmConfig.OverrideDowngradeForMixedMemory = 0;
 	mupd->FspmConfig.MemTestOnWarmBoot = 1;
-	// mupd->FspmConfig.DdrFreqLimit = 18; - Undocumented. Guessing 18 will be 3200MHz. Disabling for now.
+	mupd->FspmConfig.DdrFreqLimit = 0; // Setting to auto for now.
 	mupd->FspmConfig.SaGv = 0;
 	// mupd->FspmConfig.RetrainOnFastFail = 1; - Commenting out for now, can't find an equivalent in FSP-M headers.
 	mupd->FspmConfig.NModeSupport = 0; // Board type is 1N (1DPC). Shoud be set to "1", testing auto "0" for now.

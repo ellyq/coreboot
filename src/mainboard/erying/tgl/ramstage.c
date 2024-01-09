@@ -32,6 +32,8 @@ void mainboard_silicon_init_params(FSP_S_CONFIG *params)
 	params->SataLedEnable = 1;
 	params->AmtEnabled = 0;
 	params->HybridStorageMode = 1;
-	params->ITbtPcieTunnelingForUsb4 = 0;
-	params->PchEspiHostC10ReportEnable = 1; /* Experimental! Should help with power efficiency. */
+	params->RC1pFreqEnable = 1;
+	params->PavpEnable = 1;
+	params->CdynmaxClampEnable = 0;
+	params->PeiGraphicsPeimInit = 1;
 }
