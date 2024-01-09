@@ -19,6 +19,7 @@ config BOARD_GOOGLE_REX_COMMON
 	select GOOGLE_SMBIOS_MAINBOARD_VERSION
 	select HAVE_ACPI_RESUME
 	select HAVE_ACPI_TABLES
+	select HAVE_FSP_LOGO_SUPPORT if RUN_FSP_GOP
 	select I2C_TPM
 	select INTEL_LPSS_UART_FOR_CONSOLE
 	select MAINBOARD_DISABLE_STAGE_CACHE
@@ -33,19 +34,19 @@ config BOARD_GOOGLE_REX_COMMON
 config BOARD_GOOGLE_BASEBOARD_REX
 	def_bool n
 	select BOARD_GOOGLE_REX_COMMON
+	select CHROMEOS_WIFI_SAR if CHROMEOS
 	select DRIVERS_INTEL_PMC
 	select DRIVERS_GENERIC_GPIO_KEYS
 	select DRIVERS_WWAN_FM350GL
-	select HAVE_FSP_LOGO_SUPPORT if RUN_FSP_GOP
 	select HAVE_SLP_S0_GATE
 	select MAINBOARD_HAS_CHROMEOS
 	select MEMORY_SOLDERDOWN
+	select SOC_INTEL_COMMON_BASECODE_RAMTOP
+	select SOC_INTEL_ENABLE_USB4_PCIE_RESOURCES
 	select SOC_INTEL_IOE_DIE_SUPPORT
 	select SOC_INTEL_METEORLAKE_U_H
-	select SOC_INTEL_ENABLE_USB4_PCIE_RESOURCES
 	select SYSTEM_TYPE_LAPTOP
 	select TPM_GOOGLE_TI50
-	select CHROMEOS_WIFI_SAR if CHROMEOS
 
 config BOARD_GOOGLE_MODEL_REX
 	def_bool n
@@ -237,18 +238,5 @@ config USE_PM_ACPI_TIMER
 
 config HAVE_SLP_S0_GATE
 	def_bool n
-
-choice
-	prompt "Choose desired processor power limits (PLs)"
-	default PL_BASELINE if BOARD_GOOGLE_MODEL_SCREEBO
-	default PL_PERFORMANCE
-
-config PL_PERFORMANCE
-	bool "Performance: Maximum PLs for maximum performance"
-
-config PL_BASELINE
-	bool "Baseline: Baseline PLs for balanced performance at lower power"
-
-endchoice
 
 endif # BOARD_GOOGLE_REX_COMMON

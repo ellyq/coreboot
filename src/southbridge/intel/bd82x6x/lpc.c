@@ -432,44 +432,45 @@ static const struct {
 	 * October 2013
 	 * CDI / IBP#: 440377
 	 */
-	{0x1C41, "SFF Sample"},
-	{0x1C42, "Desktop Sample"},
-	{0x1C43, "Mobile Sample"},
-	{0x1C44, "Z68"},
-	{0x1C46, "P67"},
-	{0x1C47, "UM67"},
-	{0x1C49, "HM65"},
-	{0x1C4A, "H67"},
-	{0x1C4B, "HM67"},
-	{0x1C4C, "Q65"},
-	{0x1C4D, "QS67"},
-	{0x1C4E, "Q67"},
-	{0x1C4F, "QM67"},
-	{0x1C50, "B65"},
-	{0x1C52, "C202"},
-	{0x1C54, "C204"},
-	{0x1C56, "C206"},
-	{0x1C5C, "H61"},
+	{PCI_DID_INTEL_6_SERIES_MOBILE_SFF, "SFF Sample"},
+	{PCI_DID_INTEL_6_DESKTOP_SAMPLE, "Desktop Sample"},
+	{PCI_DID_INTEL_6_SERIES_MOBILE, "Mobile Sample"},
+	{PCI_DID_INTEL_6_SERIES_Z68, "Z68"},
+	{PCI_DID_INTEL_6_SERIES_P67, "P67"},
+	{PCI_DID_INTEL_6_SERIES_UM67, "UM67"},
+	{PCI_DID_INTEL_6_SERIES_HM65, "HM65"},
+	{PCI_DID_INTEL_6_SERIES_H67, "H67"},
+	{PCI_DID_INTEL_6_SERIES_HM67, "HM67"},
+	{PCI_DID_INTEL_6_SERIES_Q65, "Q65"},
+	{PCI_DID_INTEL_6_SERIES_QS67, "QS67"},
+	{PCI_DID_INTEL_6_SERIES_Q67, "Q67"},
+	{PCI_DID_INTEL_6_SERIES_QM67, "QM67"},
+	{PCI_DID_INTEL_6_SERIES_B65, "B65"},
+	{PCI_DID_INTEL_6_SERIES_C202, "C202"},
+	{PCI_DID_INTEL_6_SERIES_C204, "C204"},
+	{PCI_DID_INTEL_6_SERIES_C206, "C206"},
+	{PCI_DID_INTEL_6_SERIES_H61, "H61"},
+
 	/* 7-series PCI ids from Intel document 472178 */
-	{0x1E41, "Desktop Sample"},
-	{0x1E42, "Mobile Sample"},
-	{0x1E43, "SFF Sample"},
-	{0x1E44, "Z77"},
-	{0x1E45, "H71"},
-	{0x1E46, "Z75"},
-	{0x1E47, "Q77"},
-	{0x1E48, "Q75"},
-	{0x1E49, "B75"},
-	{0x1E4A, "H77"},
-	{0x1E53, "C216"},
-	{0x1E55, "QM77"},
-	{0x1E56, "QS77"},
-	{0x1E58, "UM77"},
-	{0x1E57, "HM77"},
-	{0x1E59, "HM76"},
-	{0x1E5D, "HM75"},
-	{0x1E5E, "HM70"},
-	{0x1E5F, "NM70"},
+	{PCI_DID_INTEL_7_SERIES_DESKTOP_SAMPLE, "Desktop Sample"},
+	{PCI_DID_INTEL_7_SERIES_MOBILE, "Mobile Sample"},
+	{PCI_DID_INTEL_7_SERIES_MOBILE_SFF, "SFF Sample"},
+	{PCI_DID_INTEL_7_SERIES_Z77, "Z77"},
+	{PCI_DID_INTEL_7_SERIES_H71, "H71"},
+	{PCI_DID_INTEL_7_SERIES_Z75, "Z75"},
+	{PCI_DID_INTEL_7_SERIES_Q77, "Q77"},
+	{PCI_DID_INTEL_7_SERIES_Q75, "Q75"},
+	{PCI_DID_INTEL_7_SERIES_B75, "B75"},
+	{PCI_DID_INTEL_7_SERIES_H77, "H77"},
+	{PCI_DID_INTEL_7_SERIES_C216, "C216"},
+	{PCI_DID_INTEL_7_SERIES_QM77, "QM77"},
+	{PCI_DID_INTEL_7_SERIES_QS77, "QS77"},
+	{PCI_DID_INTEL_7_SERIES_UM77, "UM77"},
+	{PCI_DID_INTEL_7_SERIES_HM77, "HM77"},
+	{PCI_DID_INTEL_7_SERIES_HM76, "HM76"},
+	{PCI_DID_INTEL_7_SERIES_HM75, "HM75"},
+	{PCI_DID_INTEL_7_SERIES_HM70, "HM70"},
+	{PCI_DID_INTEL_7_SERIES_NM70, "NM70"},
 };
 
 static void report_pch_info(struct device *dev)
@@ -658,7 +659,7 @@ void intel_southbridge_override_spi(
 		memcpy(spi_config, &config->spi, sizeof(*spi_config));
 }
 
-static struct device_operations device_ops = {
+struct device_operations bd82x6x_lpc_bridge_ops = {
 	.read_resources		= pch_lpc_read_resources,
 	.set_resources		= pci_dev_set_resources,
 	.enable_resources	= pci_dev_enable_resources,
@@ -670,27 +671,4 @@ static struct device_operations device_ops = {
 	.enable			= pch_lpc_enable,
 	.scan_bus		= scan_static_bus,
 	.ops_pci		= &pci_dev_ops_pci,
-};
-
-/* IDs for LPC device of Intel 6 Series Chipset, Intel 7 Series Chipset, and
- * Intel C200 Series Chipset
- */
-
-static const unsigned short pci_device_ids[] = {
-	0x1c40, 0x1c41, 0x1c42, 0x1c43, 0x1c44, 0x1c45, 0x1c46, 0x1c47, 0x1c48,
-	0x1c49, 0x1c4a, 0x1c4b, 0x1c4c, 0x1c4d, 0x1c4e, 0x1c4f, 0x1c50, 0x1c51,
-	0x1c52, 0x1c53, 0x1c54, 0x1c55, 0x1c56, 0x1c57, 0x1c58, 0x1c59, 0x1c5a,
-	0x1c5b, 0x1c5c, 0x1c5d, 0x1c5e, 0x1c5f,
-
-	0x1e41, 0x1e42, 0x1e43, 0x1e44, 0x1e45, 0x1e46, 0x1e47, 0x1e48, 0x1e49,
-	0x1e4a, 0x1e4b, 0x1e4c, 0x1e4d, 0x1e4e, 0x1e4f, 0x1e50, 0x1e51, 0x1e52,
-	0x1e53, 0x1e54, 0x1e55, 0x1e56, 0x1e57, 0x1e58, 0x1e59, 0x1e5a, 0x1e5b,
-	0x1e5c, 0x1e5d, 0x1e5e, 0x1e5f,
-
-	0 };
-
-static const struct pci_driver pch_lpc __pci_driver = {
-	.ops	 = &device_ops,
-	.vendor	 = PCI_VID_INTEL,
-	.devices = pci_device_ids,
 };

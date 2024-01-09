@@ -1329,6 +1329,36 @@ static int check_region(const struct frba *frba, unsigned int region_type)
 	return !!((region.base < region.limit) && (region.size > 0));
 }
 
+/*
+ * Platforms from CNL onwards support up to 16 flash regions, not 12. The
+ * permissions for regions [15:12] are stored in extended region read/write
+ * access fields in the FLMSTR registers.
+ *
+ * FLMSTR with extended regions:
+ *   31:20 Region Write Access
+ *   19:8  Region Read Access
+ *    7:4  Extended Region Write Access
+ *    3:0  Extended Region Read Access
+ *
+ * FLMSTR without extended regions:
+ *   31:20 Region Write Access
+ *   19:8  Region Read Access
+ *    7:0  Reserved
+ */
+static bool platform_has_extended_regions(void)
+{
+	switch (platform) {
+	case PLATFORM_CNL:
+	case PLATFORM_JSL:
+	case PLATFORM_TGL:
+	case PLATFORM_ADL:
+	case PLATFORM_MTL:
+		return true;
+	default:
+		return false;
+	}
+}
+
 static void lock_descriptor(const char *filename, char *image, int size)
 {
 	int wr_shift, rd_shift;
@@ -1341,11 +1371,21 @@ static void lock_descriptor(const char *filename, char *image, int size)
 		wr_shift = FLMSTR_WR_SHIFT_V2;
 		rd_shift = FLMSTR_RD_SHIFT_V2;
 
-		/* Clear non-reserved bits */
-		fmba->flmstr1 &= 0xff;
-		fmba->flmstr2 &= 0xff;
-		fmba->flmstr3 &= 0xff;
-		fmba->flmstr5 &= 0xff;
+		/*
+		 * Clear all read/write access bits. See comment on
+		 * platform_has_extended_regions() for bitfields.
+		 */
+		if (platform_has_extended_regions()) {
+			fmba->flmstr1 = 0;
+			fmba->flmstr2 = 0;
+			fmba->flmstr3 = 0;
+			fmba->flmstr5 = 0;
+		} else {
+			fmba->flmstr1 &= 0xff;
+			fmba->flmstr2 &= 0xff;
+			fmba->flmstr3 &= 0xff;
+			fmba->flmstr5 &= 0xff;
+		}
 	} else {
 		wr_shift = FLMSTR_WR_SHIFT_V1;
 		rd_shift = FLMSTR_RD_SHIFT_V1;
@@ -1482,17 +1522,60 @@ static void unlock_descriptor(const char *filename, char *image, int size)
 		exit(EXIT_FAILURE);
 
 	if (ifd_version >= IFD_VERSION_2) {
-		/* Access bits for each region are read: 19:8 write: 31:20 */
-		fmba->flmstr1 = 0xffffff00 | (fmba->flmstr1 & 0xff);
-		fmba->flmstr2 = 0xffffff00 | (fmba->flmstr2 & 0xff);
-		fmba->flmstr3 = 0xffffff00 | (fmba->flmstr3 & 0xff);
-		fmba->flmstr5 = 0xffffff00 | (fmba->flmstr5 & 0xff);
+		/*
+		 * Set all read/write access bits. See comment on
+		 * platform_has_extended_regions() for bitfields.
+		 */
+		if (platform_has_extended_regions()) {
+			fmba->flmstr1 = 0xffffffff;
+			fmba->flmstr2 = 0xffffffff;
+			fmba->flmstr3 = 0xffffffff;
+			fmba->flmstr5 = 0xffffffff;
+		} else {
+			fmba->flmstr1 = 0xffffff00 | (fmba->flmstr1 & 0xff);
+			fmba->flmstr2 = 0xffffff00 | (fmba->flmstr2 & 0xff);
+			fmba->flmstr3 = 0xffffff00 | (fmba->flmstr3 & 0xff);
+			fmba->flmstr5 = 0xffffff00 | (fmba->flmstr5 & 0xff);
+		}
 	} else {
 		fmba->flmstr1 = 0xffff0000;
 		fmba->flmstr2 = 0xffff0000;
 		/* Keep chipset specific Requester ID */
 		fmba->flmstr3 = 0x08080000 | (fmba->flmstr3 & 0xffff);
 	}
+
+	write_image(filename, image, size);
+}
+
+static void disable_gpr0(const char *filename, char *image, int size)
+{
+	struct fpsba *fpsba = find_fpsba(image, size);
+	if (!fpsba)
+		exit(EXIT_FAILURE);
+
+	/* Offset expressed as number of 32-bit fields from FPSBA */
+	uint32_t gpr0_offset;
+	switch (platform) {
+	case PLATFORM_CNL:
+		gpr0_offset = 0x10;
+		break;
+	case PLATFORM_JSL:
+		gpr0_offset = 0x12;
+		break;
+	case PLATFORM_TGL:
+	case PLATFORM_ADL:
+		gpr0_offset = 0x15;
+		break;
+	case PLATFORM_MTL:
+		gpr0_offset = 0x40;
+		break;
+	default:
+		fprintf(stderr, "Disabling GPR0 not supported on this platform\n");
+		exit(EXIT_FAILURE);
+	}
+
+	/* 0 means GPR0 protection is disabled */
+	fpsba->pchstrp[gpr0_offset] = 0;
 
 	write_image(filename, image, size);
 }
@@ -1836,6 +1919,7 @@ static void print_usage(const char *name)
 	       "   -l | --lock                           Lock firmware descriptor and ME region\n"
 	       "   -r | --read				 Enable CPU/BIOS read access for ME region\n"
 	       "   -u | --unlock                         Unlock firmware descriptor and ME region\n"
+	       "   -g | --gpr0-disable                   Disable GPR0 (Global Protected Range) register\n"
 	       "   -M | --altmedisable <0|1>             Set the MeDisable and AltMeDisable (or HAP for skylake or newer platform)\n"
 	       "                                         bits to disable ME\n"
 	       "   -p | --platform                       Add platform-specific quirks\n"
@@ -1869,6 +1953,7 @@ int main(int argc, char *argv[])
 	int mode_em100 = 0, mode_locked = 0, mode_unlocked = 0, mode_validate = 0;
 	int mode_layout = 0, mode_newlayout = 0, mode_density = 0, mode_setstrap = 0;
 	int mode_read = 0, mode_altmedisable = 0, altmedisable = 0, mode_fmap_template = 0;
+	int mode_gpr0_disable = 0;
 	char *region_type_string = NULL, *region_fname = NULL;
 	const char *layout_fname = NULL;
 	char *new_filename = NULL;
@@ -1894,6 +1979,7 @@ int main(int argc, char *argv[])
 		{"lock", 0, NULL, 'l'},
 		{"read", 0, NULL, 'r'},
 		{"unlock", 0, NULL, 'u'},
+		{"gpr0-disable", 0, NULL, 'g'},
 		{"version", 0, NULL, 'v'},
 		{"help", 0, NULL, 'h'},
 		{"platform", 0, NULL, 'p'},
@@ -1903,7 +1989,7 @@ int main(int argc, char *argv[])
 		{0, 0, 0, 0}
 	};
 
-	while ((opt = getopt_long(argc, argv, "S:V:df:F:D:C:M:xi:n:O:s:p:elruvth?",
+	while ((opt = getopt_long(argc, argv, "S:V:df:F:D:C:M:xi:n:O:s:p:elrugvth?",
 					long_options, &option_index)) != EOF) {
 		switch (opt) {
 		case 'd':
@@ -2106,6 +2192,9 @@ int main(int argc, char *argv[])
 				exit(EXIT_FAILURE);
 			}
 			break;
+		case 'g':
+			mode_gpr0_disable = 1;
+			break;
 		case 'p':
 			if (!strcmp(optarg, "aplk")) {
 				platform = PLATFORM_APL;
@@ -2158,7 +2247,8 @@ int main(int argc, char *argv[])
 
 	if ((mode_dump + mode_layout + mode_fmap_template + mode_extract + mode_inject +
 			mode_setstrap + mode_newlayout + (mode_spifreq | mode_em100 |
-			mode_unlocked | mode_locked) + mode_altmedisable + mode_validate) > 1) {
+			mode_unlocked | mode_locked) + mode_altmedisable + mode_validate +
+			mode_gpr0_disable) > 1) {
 		fprintf(stderr, "You may not specify more than one mode.\n\n");
 		fprintf(stderr, "run '%s -h' for usage\n", argv[0]);
 		exit(EXIT_FAILURE);
@@ -2166,7 +2256,8 @@ int main(int argc, char *argv[])
 
 	if ((mode_dump + mode_layout + mode_fmap_template + mode_extract + mode_inject +
 			mode_setstrap + mode_newlayout + mode_spifreq + mode_em100 +
-			mode_locked + mode_unlocked + mode_density + mode_altmedisable + mode_validate) == 0) {
+			mode_locked + mode_unlocked + mode_density + mode_altmedisable +
+			mode_validate + mode_gpr0_disable) == 0) {
 		fprintf(stderr, "You need to specify a mode.\n\n");
 		fprintf(stderr, "run '%s -h' for usage\n", argv[0]);
 		exit(EXIT_FAILURE);
@@ -2262,6 +2353,9 @@ int main(int argc, char *argv[])
 
 	if (mode_unlocked)
 		unlock_descriptor(new_filename, image, size);
+
+	if (mode_gpr0_disable)
+		disable_gpr0(new_filename, image, size);
 
 	if (mode_setstrap) {
 		struct fpsba *fpsba = find_fpsba(image, size);

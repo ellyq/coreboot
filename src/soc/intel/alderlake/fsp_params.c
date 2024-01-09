@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <assert.h>
+#include <bootmode.h>
 #include <bootsplash.h>
 #include <console/console.h>
 #include <cpu/intel/microcode.h>
@@ -637,7 +638,7 @@ static void fill_fsps_igd_params(FSP_S_CONFIG *s_cfg,
 
 	/* Check if IGD is present and fill Graphics init param accordingly */
 	s_cfg->PeiGraphicsPeimInit = CONFIG(RUN_FSP_GOP) && is_devfn_enabled(SA_DEVFN_IGD);
-	s_cfg->LidStatus = CONFIG(RUN_FSP_GOP);
+	s_cfg->LidStatus = CONFIG(VBOOT_LID_SWITCH) ? get_lid_switch() : CONFIG(RUN_FSP_GOP);
 	s_cfg->PavpEnable = CONFIG(PAVP);
 }
 
@@ -1069,7 +1070,7 @@ static void fill_fsps_misc_power_params(FSP_S_CONFIG *s_cfg,
 	s_cfg->PkgCStateDemotion = !config->disable_package_c_state_demotion;
 
 	if (cpu_id == CPUID_RAPTORLAKE_J0 || cpu_id == CPUID_RAPTORLAKE_Q0)
-		s_cfg->C1e = 0;
+		s_cfg->C1e = config->enable_c1e;
 	else
 		s_cfg->C1e = 1;
 #if CONFIG(SOC_INTEL_RAPTORLAKE) && !CONFIG(FSP_USE_REPO)

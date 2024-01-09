@@ -10,7 +10,7 @@
  * pl2_min (milliWatts), pl2_max (milliWatts), pl4 (milliWatts)
  * Following values are for performance config as per document #640982
  */
-#if CONFIG(PL_PERFORMANCE)
+
 const struct cpu_tdp_power_limits performance_efficient_limits[] = {
 	{
 		.mch_id = PCI_DID_INTEL_MTL_P_ID_2,
@@ -52,52 +52,11 @@ const struct cpu_tdp_power_limits power_optimized_limits[] = {
 		.pl4_power = 64000
 	},
 };
-#else
-const struct cpu_tdp_power_limits performance_efficient_limits[] = {
-	{
-		.mch_id = PCI_DID_INTEL_MTL_P_ID_2,
-		.cpu_tdp = 15,
-		.pl1_min_power = 10000,
-		.pl1_max_power = 15000,
-		.pl2_min_power = 40000,
-		.pl2_max_power = 40000,
-		.pl4_power = 84000
-	},
-	{
-		.mch_id = PCI_DID_INTEL_MTL_P_ID_5,
-		.cpu_tdp = 15,
-		.pl1_min_power = 10000,
-		.pl1_max_power = 15000,
-		.pl2_min_power = 40000,
-		.pl2_max_power = 40000,
-		.pl4_power = 84000
-	},
-};
 
-const struct cpu_tdp_power_limits power_optimized_limits[] = {
-	{
-		.mch_id = PCI_DID_INTEL_MTL_P_ID_2,
-		.cpu_tdp = 15,
-		.pl1_min_power = 10000,
-		.pl1_max_power = 15000,
-		.pl2_min_power = 40000,
-		.pl2_max_power = 40000,
-		.pl4_power = 47000
-	},
-	{
-		.mch_id = PCI_DID_INTEL_MTL_P_ID_5,
-		.cpu_tdp = 15,
-		.pl1_min_power = 10000,
-		.pl1_max_power = 15000,
-		.pl2_min_power = 40000,
-		.pl2_max_power = 40000,
-		.pl4_power = 47000
-	},
-};
-#endif
-
-void variant_devtree_update(void)
+void __weak variant_devtree_update(void)
 {
+	printk(BIOS_DEBUG, "WEAK: %s/%s called\n", __FILE__, __func__);
+
 	const struct cpu_tdp_power_limits *limits = performance_efficient_limits;
 	size_t limits_size = ARRAY_SIZE(performance_efficient_limits);
 
@@ -114,4 +73,9 @@ void variant_devtree_update(void)
 	}
 
 	variant_update_cpu_power_limits(limits, limits_size);
+}
+
+void baseboard_devtree_update(void)
+{
+	variant_devtree_update();
 }

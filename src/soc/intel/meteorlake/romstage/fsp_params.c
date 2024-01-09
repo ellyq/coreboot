@@ -1,18 +1,23 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <assert.h>
+#include <bootmode.h>
 #include <console/console.h>
 #include <cpu/intel/common/common.h>
 #include <cpu/intel/cpu_ids.h>
 #include <cpu/x86/msr.h>
 #include <device/device.h>
+#include <device/pci.h>
 #include <drivers/wifi/generic/wifi.h>
+#include <elog.h>
 #include <fsp/fsp_debug_event.h>
 #include <fsp/util.h>
 #include <intelbasecode/ramtop.h>
 #include <intelblocks/cpulib.h>
+#include <intelblocks/cse.h>
 #include <intelblocks/pcie_rp.h>
 #include <option.h>
+#include <soc/cpu.h>
 #include <soc/gpio_soc_defs.h>
 #include <soc/iomap.h>
 #include <soc/msr.h>
@@ -22,6 +27,7 @@
 #include <soc/soc_chip.h>
 #include <soc/soc_info.h>
 #include <string.h>
+#include <ux_locales.h>
 
 #define FSP_CLK_NOTUSED			0xFF
 #define FSP_CLK_LAN			0x70
@@ -156,6 +162,8 @@ static void fill_fspm_mrc_params(FSP_M_CONFIG *m_cfg,
 	}
 
 	m_cfg->RMT = config->rmt;
+	m_cfg->RMC = 0;
+	m_cfg->MarginLimitCheck = 0;
 	/* Enable MRC Fast Boot */
 	m_cfg->MrcFastBoot = 1;
 	m_cfg->LowerBasicMemTestSize = config->lower_basic_mem_test_size;
@@ -181,7 +189,8 @@ static void fill_tme_params(FSP_M_CONFIG *m_cfg)
 	m_cfg->TmeEnable = CONFIG(INTEL_TME) && is_tme_supported();
 	if (!m_cfg->TmeEnable)
 		return;
-	m_cfg->GenerateNewTmeKey = CONFIG(TME_KEY_REGENERATION_ON_WARM_BOOT);
+	m_cfg->GenerateNewTmeKey = CONFIG(TME_KEY_REGENERATION_ON_WARM_BOOT) &&
+			 CONFIG(SOC_INTEL_COMMON_BASECODE_RAMTOP);
 	if (m_cfg->GenerateNewTmeKey) {
 		uint32_t ram_top = get_ramtop_addr();
 		if (!ram_top) {
@@ -386,6 +395,20 @@ static void fill_fspm_ibecc_params(FSP_M_CONFIG *m_cfg,
 	}
 }
 
+static void fill_fsps_acoustic_params(FSP_M_CONFIG *m_cfg,
+		const struct soc_intel_meteorlake_config *config)
+{
+	if (!config->enable_acoustic_noise_mitigation)
+		return;
+
+	m_cfg->AcousticNoiseMitigation = config->enable_acoustic_noise_mitigation;
+
+	for (int i = 0; i < NUM_VR_DOMAINS; i++) {
+		m_cfg->FastPkgCRampDisable[i] = config->disable_fast_pkgc_ramp[i];
+		m_cfg->SlowSlewRate[i] = config->slow_slew_rate_config[i];
+	}
+}
+
 static void soc_memory_init_params(FSP_M_CONFIG *m_cfg,
 		const struct soc_intel_meteorlake_config *config)
 {
@@ -409,10 +432,63 @@ static void soc_memory_init_params(FSP_M_CONFIG *m_cfg,
 		fill_fspm_trace_params,
 		fill_fspm_vr_config_params,
 		fill_fspm_ibecc_params,
+		fill_fsps_acoustic_params,
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(fill_fspm_params); i++)
 		fill_fspm_params[i](m_cfg, config);
+}
+
+#define UX_MEMORY_TRAINING_DESC	"memory_training_desc"
+
+#define VGA_INIT_CONTROL_ENABLE		BIT(0)
+/* Tear down legacy VGA mode before exiting FSP-M. */
+#define VGA_INIT_CONTROL_TEAR_DOWN	BIT(1)
+
+static void fill_fspm_sign_of_life(FSP_M_CONFIG *m_cfg,
+				   FSPM_ARCH_UPD *arch_upd)
+{
+	void *vbt;
+	size_t vbt_size;
+	uint32_t vga_init_control = 0;
+	uint8_t sol_type;
+
+	/* Memory training.  */
+	if (!arch_upd->NvsBufferPtr) {
+		vga_init_control = VGA_INIT_CONTROL_ENABLE |
+			VGA_INIT_CONTROL_TEAR_DOWN;
+		sol_type = ELOG_FW_EARLY_SOL_MRC;
+	}
+
+	if (is_cse_fw_update_required()) {
+		vga_init_control = VGA_INIT_CONTROL_ENABLE;
+		sol_type = ELOG_FW_EARLY_SOL_CSE_SYNC;
+	}
+
+	if (!vga_init_control)
+		return;
+
+	const char *text = ux_locales_get_text(UX_MEMORY_TRAINING_DESC);
+	/* No localized text found; fallback to built-in English. */
+	if (!text)
+		text = "Your device is finishing an update. "
+		       "This may take 1-2 minutes.\n"
+		       "Please do not turn off your device.";
+
+	vbt = cbfs_map("vbt.bin", &vbt_size);
+	if (!vbt) {
+		printk(BIOS_ERR, "Could not load vbt.bin\n");
+		return;
+	}
+
+	printk(BIOS_INFO, "Enabling FSP-M Sign-of-Life\n");
+	elog_add_event_byte(ELOG_TYPE_FW_EARLY_SOL, sol_type);
+
+	m_cfg->VgaInitControl = vga_init_control;
+	m_cfg->VbtPtr = (UINT32)vbt;
+	m_cfg->VbtSize = vbt_size;
+	m_cfg->LidStatus = CONFIG(VBOOT_LID_SWITCH) ? get_lid_switch() : CONFIG(RUN_FSP_GOP);
+	m_cfg->VgaMessage = (UINT32)text;
 }
 
 void platform_fsp_memory_init_params_cb(FSPM_UPD *mupd, uint32_t version)
@@ -440,6 +516,10 @@ void platform_fsp_memory_init_params_cb(FSPM_UPD *mupd, uint32_t version)
 	config = config_of_soc();
 
 	soc_memory_init_params(m_cfg, config);
+
+	if (CONFIG(SOC_INTEL_METEORLAKE_SIGN_OF_LIFE))
+		fill_fspm_sign_of_life(m_cfg, arch_upd);
+
 	mainboard_memory_init_params(mupd);
 }
 

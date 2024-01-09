@@ -14,6 +14,7 @@
  */
 
 #include <acpi/acpi.h>
+#include <acpi/acpi_iort.h>
 #include <acpi/acpi_ivrs.h>
 #include <acpi/acpigen.h>
 #include <cbfs.h>
@@ -21,6 +22,7 @@
 #include <commonlib/helpers.h>
 #include <console/console.h>
 #include <cpu/cpu.h>
+#include <device/device.h>
 #include <device/mmio.h>
 #include <device/pci.h>
 #include <drivers/uart/pl011.h>
@@ -298,7 +300,9 @@ static void acpi_ssdt_write_cbtable(void)
 	acpigen_write_STA(ACPI_STATUS_DEVICE_ALL_ON);
 	acpigen_write_name("_CRS");
 	acpigen_write_resourcetemplate_header();
-	acpigen_write_mem32fixed(0, base, size);
+	acpigen_resource_consumer_mmio(base, base + size - 1,
+				       MEM_RSRC_FLAG_MEM_READ_ONLY
+				       | MEM_RSRC_FLAG_MEM_ATTR_CACHE);
 	acpigen_write_resourcetemplate_footer();
 	acpigen_pop_len();
 }
@@ -896,6 +900,14 @@ unsigned long acpi_pl011_write_dbg2_uart(acpi_rsdp_t *rsdp, unsigned long curren
 				    name);
 }
 
+unsigned long acpi_16550_mmio32_write_dbg2_uart(acpi_rsdp_t *rsdp, unsigned long current,
+					 uint64_t base, const char *name)
+{
+	return acpi_write_dbg2_uart(rsdp, current, ACPI_ADDRESS_SPACE_MEMORY, base,
+				    0x100, ACPI_ACCESS_SIZE_DWORD_ACCESS,
+				    name);
+}
+
 static void acpi_create_facs(void *header)
 {
 	acpi_facs_t *facs = header;
@@ -1186,6 +1198,45 @@ unsigned long acpi_gtdt_add_watchdog(unsigned long current, uint64_t refresh_fra
 	return current + sizeof(struct acpi_gtdt_watchdog);
 }
 
+static void acpi_create_iort(acpi_header_t *header, void *unused)
+{
+	if (!CONFIG(ACPI_IORT))
+		return;
+
+	acpi_iort_t *iort = (acpi_iort_t *)header;
+	unsigned long current = (unsigned long)iort + sizeof(acpi_iort_t);
+
+	if (acpi_fill_header(header, "IORT", IORT, sizeof(acpi_iort_t)) != CB_SUCCESS)
+		return;
+
+	iort->node_count = 0;
+	iort->node_offset = current - (unsigned long)iort;
+
+	current = acpi_soc_fill_iort(iort, current);
+
+	/* (Re)calculate length */
+	header->length = current - (unsigned long)iort;
+}
+
+static void acpi_create_wdat(acpi_header_t *header, void *unused)
+{
+	if (!CONFIG(ACPI_WDAT_WDT))
+		return;
+
+	acpi_wdat_t *wdat = (acpi_wdat_t *)header;
+	unsigned long current = (unsigned long)wdat + sizeof(acpi_wdat_t);
+
+	memset((void *)wdat, 0, sizeof(acpi_wdat_t));
+
+	if (acpi_fill_header(header, "WDAT", WDAT, sizeof(acpi_wdat_t)) != CB_SUCCESS)
+		return;
+
+	current = acpi_soc_fill_wdat(wdat, current);
+
+	/* (Re)calculate length. */
+	header->length = current - (unsigned long)wdat;
+}
+
 unsigned long acpi_create_lpi_desc_ncst(acpi_lpi_desc_ncst_t *lpi_desc, uint16_t uid)
 {
 	memset(lpi_desc, 0, sizeof(acpi_lpi_desc_ncst_t));
@@ -1194,6 +1245,18 @@ unsigned long acpi_create_lpi_desc_ncst(acpi_lpi_desc_ncst_t *lpi_desc, uint16_t
 	lpi_desc->header.uid = uid;
 
 	return lpi_desc->header.length;
+}
+
+static void acpi_create_pptt(acpi_header_t *header, void *unused)
+{
+	if (!CONFIG(ACPI_PPTT))
+		return;
+
+	if (acpi_fill_header(header, "PPTT", PPTT, sizeof(acpi_pptt_t)) != CB_SUCCESS)
+		return;
+
+	acpi_pptt_t *pptt = (acpi_pptt_t *)header;
+	acpi_create_pptt_body(pptt);
 }
 
 static uint8_t acpi_spcr_type(void)
@@ -1347,6 +1410,8 @@ static void acpixtract_compatible_hexdump(const void *memory, size_t length)
 
 static void acpidump_print(void *table_ptr)
 {
+	if (table_ptr == NULL)
+		return;
 	const acpi_header_t *header = (acpi_header_t *)table_ptr;
 	const size_t table_size = header->length;
 	printk(BIOS_SPEW, "%.4s @ 0x0000000000000000\n", header->signature);
@@ -1386,6 +1451,9 @@ unsigned long write_acpi_tables(const unsigned long start)
 		{ acpi_create_bert, NULL, sizeof(acpi_bert_t) },
 		{ acpi_create_spcr, NULL, sizeof(acpi_spcr_t) },
 		{ acpi_create_gtdt, NULL, sizeof(acpi_gtdt_t) },
+		{ acpi_create_pptt, NULL, sizeof(acpi_pptt_t) },
+		{ acpi_create_iort, NULL, sizeof(acpi_iort_t) },
+		{ acpi_create_wdat, NULL, sizeof(acpi_wdat_t) },
 	};
 
 	current = start;
@@ -1735,6 +1803,12 @@ int get_acpi_table_revision(enum acpi_tables table)
 		return 4;
 	case GTDT:
 		return 3;
+	case PPTT: /* ACPI 6.4 */
+		return 3;
+	case IORT: /* IO Remapping Table E.e */
+		return 6;
+	case WDAT:
+		return 1;
 	default:
 		return -1;
 	}

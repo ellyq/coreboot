@@ -112,7 +112,7 @@ extern const struct spi_flash_vendor_info spi_flash_atmel_vi;
 extern const struct spi_flash_vendor_info spi_flash_eon_vi;
 extern const struct spi_flash_vendor_info spi_flash_gigadevice_vi;
 extern const struct spi_flash_vendor_info spi_flash_macronix_vi;
-/* Probing order matters between the spansion sequence. */
+/* Probing order matters between the Spansion sequence. */
 extern const struct spi_flash_vendor_info spi_flash_spansion_ext1_vi;
 extern const struct spi_flash_vendor_info spi_flash_spansion_ext2_vi;
 extern const struct spi_flash_vendor_info spi_flash_spansion_vi;
@@ -123,6 +123,7 @@ extern const struct spi_flash_vendor_info spi_flash_stmicro2_vi;
 extern const struct spi_flash_vendor_info spi_flash_stmicro3_vi;
 extern const struct spi_flash_vendor_info spi_flash_stmicro4_vi;
 extern const struct spi_flash_vendor_info spi_flash_winbond_vi;
+extern const struct spi_flash_vendor_info spi_flash_issi_vi;
 
 /* Page Programming Command Set with 0x20 Sector Erase command. */
 extern const struct spi_flash_ops_descriptor spi_flash_pp_0x20_sector_desc;

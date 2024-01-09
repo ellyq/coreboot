@@ -317,7 +317,7 @@ $(objcbfs)/ramstage.elf: $(objcbfs)/ramstage.debug.rmod
 
 $(objcbfs)/ramstage.debug: $(objgenerated)/ramstage.o $(call src-to-obj,ramstage,$(CONFIG_MEMLAYOUT_LD_FILE))
 	@printf "    CC         $(subst $(obj)/,,$(@))\n"
-	$(LD_ramstage) $(CPPFLAGS) $(LDFLAGS_ramstage) -o $@ -L$(obj) $< -T $(call src-to-obj,ramstage,$(CONFIG_MEMLAYOUT_LD_FILE))
+	$(LD_ramstage) $(LDFLAGS_ramstage) -o $@ -L$(obj) $< -T $(call src-to-obj,ramstage,$(CONFIG_MEMLAYOUT_LD_FILE))
 
 $(objgenerated)/ramstage.o: $$(ramstage-objs) $(COMPILER_RT_ramstage) $$(ramstage-libs)
 	@printf "    CC         $(subst $(obj)/,,$(@))\n"
@@ -336,3 +336,8 @@ smm-$(CONFIG_X86_TOP4G_BOOTMEDIA_MAP) += mmap_boot.c
 smm-$(CONFIG_DEBUG_NULL_DEREF_BREAKPOINTS_IN_ALL_STAGES) += null_breakpoint.c
 
 smm-srcs += $(wildcard src/mainboard/$(MAINBOARDDIR)/smihandler.c)
+
+ifneq ($(CONFIG_HAVE_CONFIGURABLE_APMC_SMI_PORT),y)
+ramstage-y += apmc_smi_port.c
+smm-y += apmc_smi_port.c
+endif

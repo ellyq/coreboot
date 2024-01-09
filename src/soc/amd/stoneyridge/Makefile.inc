@@ -26,7 +26,7 @@ verstage-y += gpio.c
 verstage-y += i2c.c
 
 postcar-y += memmap.c
-postcar-$(CONFIG_VBOOT_MEASURED_BOOT) += i2c.c
+postcar-$(CONFIG_TPM_MEASURED_BOOT) += i2c.c
 
 ramstage-y += aoac.c
 ramstage-y += BiosCallOuts.c
@@ -185,7 +185,7 @@ warn_no_amdfw:
 
 PHONY+=warn_no_amdfw
 
-files_added:: warn_no_amdfw
+show_notices:: warn_no_amdfw
 
 endif # ifneq ($(FIRMWARE_LOCATION),)
 

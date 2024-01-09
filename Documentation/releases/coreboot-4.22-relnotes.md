@@ -1,7 +1,7 @@
-Upcoming release - coreboot 4.22
+coreboot 4.22 & 4.22.01 releases
 ========================================================================
 
-The next release is planned for mid-February, 2024
+The next release is planned for the 19th of February, 2024
 
 These notes cover the latest updates and improvements to coreboot over
 the past three months. A big thank you to the returning contributors as
@@ -11,6 +11,17 @@ releases, this one reflects a commitment to open source innovation,
 security enhancements, and expanding hardware support.
 
 
+### 4.22.01 release
+
+The week between tagging a release and announcing it publicly is used
+to test the tagged version and make sure everything is working as we
+expect. This is done instead of freezing the tree and doing release
+candidates before the release.
+
+For the 4.22 release cycle we found an uninitialized variable error on
+the sandybridge/ivybridge platforms and rolled that into the 4.22.01
+release package.
+
 ### coreboot version naming update
 
 This release is the last release to use the incrementing 4.xx release
@@ -18,14 +29,14 @@ name scheme. For future releases, coreboot is switching to a
 Year.Month.Sub-version naming scheme. As such, the next release,
 scheduled for February of 2024 will be numbered 24.02, with the
 sub-version of 00 implied. If we need to do a fix or future release of
-the 24.02 release, we’ll append the values .01, .02 and so on to the
+the 24.02 release, we'll append the values .01, .02 and so on to the
 initial release value.
 
 
 ### coreboot default branch update
 
 Immediately after the 4.21 release, the coreboot project changed the
-default git branch from ‘master’ to ‘main’. For the first couple of
+default git branch from 'master' to 'main'. For the first couple of
 months after the change, The master branch was synced with the main
 branch several times a day, allowing people time to update any scripts.
 As of 2023-11-01, the sync rate has slowed to once a week. This will
@@ -155,7 +166,7 @@ GPU drivers will fail to load with a code 43 error in Device Manager.
 Additional coreboot changes
 ---------------------------
 
-* Move all ‘select’ statements from Kconfig.name files to Kconfig
+* Move all 'select' statements from Kconfig.name files to Kconfig
 * acpigen now generates variable-length PkgLength fields instead of a
   fixed 3-byte size to improve compatibility and to bring it in line
   with IASL
@@ -235,15 +246,15 @@ Platform Updates
 Statistics from the 4.21 to the 4.22 release
 --------------------------------------------
 
-* Total Commits: 885
-* Average Commits per day: 10.72
-* Total lines added: 58276
-* Average lines added per commit: 65.85
-* Number of patches adding more than 100 lines: 54
-* Average lines added per small commit: 37.77
-* Total lines removed: 27790
-* Average lines removed per commit: 31.40
-* Total difference between added and removed: 30486
+* Total Commits: 977
+* Average Commits per day: 10.98
+* Total lines added: 62993
+* Average lines added per commit: 64.48
+* Number of patches adding more than 100 lines: 60
+* Average lines added per small commit: 37.55
+* Total lines removed: 30042
+* Average lines removed per commit: 30.75
+* Total difference between added and removed: 32951
 * Total authors: 135
 * New authors: 14
 

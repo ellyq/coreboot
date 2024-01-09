@@ -256,6 +256,15 @@ config CBFS_MCACHE_RW_PERCENTAGE
 	  will automatically be 0 (meaning the whole MCACHE is used for RO).
 	  Do NOT change this value for vboot RW updates!
 
+config VBOOT_CLEAR_RECOVERY_IN_RAMSTAGE
+	bool "Clear the recovery request at the end of ramstage"
+	default n
+	help
+	  If this option is enabled, the recovery request will be cleared and
+	  saved to VBNV storage at the end of ramstage. This is useful for
+	  platforms without vboot-integrated payloads, to avoid being stuck in
+	  the recovery mode.
+
 config VBOOT_ENABLE_CBFS_FALLBACK
 	bool
 	default n
@@ -291,6 +300,15 @@ config VBOOT_X86_SHA256_ACCELERATION
 	help
 	  Use sha256msg1, sha256msg2, sha256rnds2 instruction to accelerate
 	  SHA hash calculation in vboot.
+
+config VBOOT_X86_RSA_ACCELERATION
+	bool "Use SSE2 instructions for RSA signature verification"
+	default n
+	depends on ARCH_X86
+	help
+	  Use paddq, pmuludq, psrlq, punpckldq and punpcklqdq SSE2
+	  instructions to accelerate the modulus exponentiation which
+	  is part of the RSA signature verification process.
 
 config VBOOT_ARMV8_CE_SHA256_ACCELERATION
 	bool "Use ARMv8 Crypto Extension for sha256 hash calculation"

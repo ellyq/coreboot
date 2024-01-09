@@ -37,6 +37,7 @@ fw_config
 	field TS_SOURCE 38 41
 		option TS_UNPROVISIONED 	0
 		option TS_GTCH7503		1
+		option TS_ILTK0001		2
 	end
 end
 
@@ -390,6 +391,23 @@ chip soc/intel/alderlake
 					probe TS_SOURCE TS_UNPROVISIONED
 				end
 			end
+			chip drivers/i2c/hid
+				register "generic.hid" = ""ILTK0001""
+				register "generic.desc" = ""ILITEK Touchscreen""
+				register "generic.irq" = "ACPI_IRQ_LEVEL_LOW(GPP_C7_IRQ)"
+				register "generic.detect" = "1"
+				register "generic.reset_gpio" = "ACPI_GPIO_OUTPUT_ACTIVE_LOW(GPP_C1)"
+				register "generic.reset_delay_ms" = "200"
+				register "generic.enable_gpio" = "ACPI_GPIO_OUTPUT_ACTIVE_HIGH(GPP_C0)"
+				register "generic.enable_delay_ms" = "12"
+				register "generic.stop_gpio" = "ACPI_GPIO_OUTPUT_ACTIVE_LOW(GPP_C6)"
+				register "generic.stop_off_delay_ms" = "200"
+				register "generic.has_power_resource" = "1"
+				register "hid_desc_reg_offset" = "0x01"
+				device i2c 41 on
+					probe TS_SOURCE TS_ILTK0001
+				end
+			end
 		end
 		device ref i2c2 on
 			chip drivers/intel/mipi_camera
@@ -597,6 +615,15 @@ chip soc/intel/alderlake
 				register "generic.detect" = "1"
 				register "hid_desc_reg_offset" = "0x20"
 				device i2c 0x2c on end
+			end
+			chip drivers/i2c/hid
+				register "generic.hid" = ""PIXA2303""
+				register "generic.desc" = ""PIXA Touchpad""
+				register "generic.irq" = "ACPI_IRQ_WAKE_LEVEL_LOW(GPP_F14_IRQ)"
+				register "generic.wake" = "GPE0_DW2_14"
+				register "generic.detect" = "1"
+				register "hid_desc_reg_offset" = "0x20"
+				device i2c 0x68 on end
 			end
 		end
 		device ref hda on

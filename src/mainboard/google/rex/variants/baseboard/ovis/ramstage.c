@@ -19,10 +19,26 @@ const struct cpu_tdp_power_limits limits[] = {
 		.pl2_max_power = 64000,
 		.pl4_power = 120000
 	},
+	{
+		.mch_id = PCI_DID_INTEL_MTL_P_ID_3,
+		.cpu_tdp = 28,
+		.pl1_min_power = 19000,
+		.pl1_max_power = 28000,
+		.pl2_min_power = 64000,
+		.pl2_max_power = 64000,
+		.pl4_power = 120000
+	},
 };
 
-void variant_devtree_update(void)
+void __weak variant_devtree_update(void)
 {
+	printk(BIOS_DEBUG, "WEAK: %s/%s called\n", __FILE__, __func__);
+
 	size_t total_entries = ARRAY_SIZE(limits);
 	variant_update_cpu_power_limits(limits, total_entries);
+}
+
+void baseboard_devtree_update(void)
+{
+	variant_devtree_update();
 }

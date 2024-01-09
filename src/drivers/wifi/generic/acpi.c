@@ -144,7 +144,7 @@ static void wifi_dsm_unii4_control_enable(void *args)
 static void wifi_dsm_ddrrfim_func3_cb(void *ptr)
 {
 	const bool is_cnvi_ddr_rfim_enabled = *(bool *)ptr;
-	acpigen_write_return_integer(is_cnvi_ddr_rfim_enabled ? 1 : 0);
+	acpigen_write_return_integer(is_cnvi_ddr_rfim_enabled ? 0 : 1);
 }
 
 static void (*wifi_dsm_callbacks[])(void *) = {
@@ -471,7 +471,7 @@ static void emit_sar_acpi_structures(const struct device *dev, struct dsm_profil
 	if (dev->path.type == DEVICE_PATH_PCI && dev->vendor != PCI_VID_INTEL)
 		return;
 
-	/* Retrieve the sar limits data */
+	/* Retrieve the SAR limits data */
 	if (get_wifi_sar_limits(&sar_limits) < 0) {
 		printk(BIOS_ERR, "failed getting SAR limits!\n");
 		return;
@@ -549,7 +549,7 @@ static void wifi_ssdt_write_properties(const struct device *dev, const char *sco
 	struct dsm_profile dsm = {0};
 	uint8_t dsm_count = 0;
 
-	/* Fill Wifi sar related ACPI structures */
+	/* Fill Wifi SAR related ACPI structures */
 	if (CONFIG(USE_SAR)) {
 		emit_sar_acpi_structures(dev, &dsm);
 

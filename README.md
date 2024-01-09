@@ -30,7 +30,7 @@ Code reviews are done in [the project's Gerrit
 instance](https://review.coreboot.org/).
 
 The code may be browsed via [coreboot's Gitiles
-instance](https://review.coreboot.org/plugins/gitiles/coreboot/+/refs/heads/master).
+instance](https://review.coreboot.org/plugins/gitiles/coreboot/+/HEAD).
 
 The coreboot project also maintains a
 [mirror](https://github.com/coreboot/coreboot) of the project on github.
@@ -140,9 +140,10 @@ These uncopyrightable files include:
   These may be required to exist as part of the build process but are
   not needed for the particular project.
 - Configuration files either in binary or text form. Examples would be
-  files such as .vbt files describing graphics configuration, spd files
-  as binary .spd or text \*spd\*.hex representing memory chip
-  configuration.
+  files such as .vbt files describing graphics configuration, .apcb
+  files containing configuration parameters for AMD firmware binaries,
+  and spd files as binary .spd or text \*spd\*.hex representing memory
+  chip configuration.
 - Machine-generated files containing version numbers, dates, hash
   values or other "non-creative" content.
 

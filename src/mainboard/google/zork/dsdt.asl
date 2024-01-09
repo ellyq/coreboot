@@ -15,28 +15,10 @@ DefinitionBlock (
 	)
 {	/* Start of ASL file */
 	#include <acpi/dsdt_top.asl>
-	#include <globalnvs.asl>
 
 	Name(LIDS, 0)
 
-	/* Power state notification to ALIB */
-	#include <pnot.asl>
-
-	/* Contains the supported sleep states for this chipset */
-	#include <soc/amd/common/acpi/sleepstates.asl>
-
-	/* Contains _SWS methods */
-	#include <soc/amd/common/acpi/acpi_wake_source.asl>
-
-	/* System Bus */
-	Scope(\_SB) { /* Start \_SB scope */
-		/* global utility methods expected within the \_SB scope */
-		#include <arch/x86/acpi/globutil.asl>
-
-		/* Describe the SOC */
-		#include <soc.asl>
-
-	} /* End \_SB scope */
+	#include <soc.asl>
 
 	/* Thermal handler */
 	#include <variant/acpi/thermal.asl>

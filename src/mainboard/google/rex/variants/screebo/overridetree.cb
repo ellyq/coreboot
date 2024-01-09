@@ -35,7 +35,7 @@ end
 chip soc/intel/meteorlake
 
 	register "power_limits_config[MTL_P_282_242_CORE]" = "{
-		.tdp_pl1_override = 15,
+		.tdp_pl1_override = 25,
 		.tdp_pl2_override = 40,
 		.tdp_pl4 = 84,
 	}"
@@ -89,6 +89,18 @@ chip soc/intel/meteorlake
 		[PchSerialIoIndexI2C4] = PchSerialIoPci,
 		[PchSerialIoIndexI2C5] = PchSerialIoPci,
 	}"
+
+	# Acoustic Noise settings and slew rate configuration:
+	#  slew rate for IA Domain: Fast/8
+	#  slew rate for GT Domain: Fast/8
+	#  Ignore slew rate configuration for SA Domain
+	register "enable_acoustic_noise_mitigation" = "1"
+	register "disable_fast_pkgc_ramp[VR_DOMAIN_IA]" = "1"
+	register "slow_slew_rate_config[VR_DOMAIN_IA]" = "SLEW_FAST_8"
+	register "disable_fast_pkgc_ramp[VR_DOMAIN_GT]" = "1"
+	register "slow_slew_rate_config[VR_DOMAIN_GT]" = "SLEW_FAST_8"
+	register "slow_slew_rate_config[VR_DOMAIN_SA]" = "SLEW_IGNORE"
+
 
 	# Intel Common SoC Config
 	#+-------------------+---------------------------+
@@ -212,8 +224,8 @@ chip soc/intel/meteorlake
 				# TODO: below values are initial reference values only
 				register "policies.critical" = "{
 						[0] = DPTF_CRITICAL(TEMP_SENSOR_0, 90, SHUTDOWN),
-						[1] = DPTF_CRITICAL(TEMP_SENSOR_1, 90, SHUTDOWN),
-						[2] = DPTF_CRITICAL(TEMP_SENSOR_2, 95, SHUTDOWN),
+						[1] = DPTF_CRITICAL(TEMP_SENSOR_1, 70, SHUTDOWN),
+						[2] = DPTF_CRITICAL(TEMP_SENSOR_2, 80, SHUTDOWN),
 				}"
 
 				## Power Limits Control
@@ -289,6 +301,7 @@ chip soc/intel/meteorlake
 			chip soc/intel/common/block/pcie/rtd3
 				register "enable_gpio" = "ACPI_GPIO_OUTPUT_ACTIVE_HIGH(GPP_D03)"
 				register "reset_gpio" = "ACPI_GPIO_OUTPUT_ACTIVE_LOW(GPP_D02)"
+				register "enable_delay_ms" = "1"
 				register "srcclk_pin" = "6"
 				device generic 0 on
 					probe DB_SD SD_GL9750
@@ -501,6 +514,7 @@ chip soc/intel/meteorlake
 				register "num_freq_entries" = "1"
 				register "link_freq[0]" = "400 * MHz"
 				register "remote_name" = ""IPU0""
+				register "max_dstate_for_probe" = "ACPI_DEVICE_SLEEP_D3_COLD"
 
 				register "has_power_resource" = "1"
 				#Controls
@@ -539,10 +553,6 @@ chip soc/intel/meteorlake
 				#_ON
 				register "on_seq.ops_cnt" = "1"
 				register "on_seq.ops[0]" = "SEQ_OPS_GPIO_ENABLE(0, 0)"
-
-				#_OFF
-				register "off_seq.ops_cnt" = "1"
-				register "off_seq.ops[0]" = "SEQ_OPS_GPIO_DISABLE(0, 0)"
 
 				register "nvm_size" = "0x2000"
 				register "nvm_pagesize" = "1"

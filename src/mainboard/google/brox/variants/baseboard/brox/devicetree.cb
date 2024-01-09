@@ -22,20 +22,26 @@ chip soc/intel/alderlake
 	# Enable CNVi BT
 	register "cnvi_bt_core" = "true"
 
-	register "usb2_ports[0]" = "USB2_PORT_TYPE_C(OC0)"	# USB2_C0
-	register "usb2_ports[1]" = "USB2_PORT_TYPE_C(OC1)"	# USB2_C1
-	register "usb2_ports[2]" = "USB2_PORT_TYPE_C(OC2)"	# USB2_C2
-	register "usb2_ports[3]" = "USB2_PORT_MID(OC_SKIP)"	# M.2 WWAN
-	register "usb2_ports[5]" = "USB2_PORT_MID(OC_SKIP)"	# M.2 Camera
-	register "usb2_ports[8]" = "USB2_PORT_MID(OC_SKIP)"	# Type-A Port A0
-	register "usb2_ports[9]" = "USB2_PORT_MID(OC_SKIP)"	# M.2 Bluetooth
+	register "usb2_ports[0]" = "USB2_PORT_TYPE_C(OC_SKIP)"  # USB2_C0
+	register "usb2_ports[1]" = "USB2_PORT_EMPTY"		# Disable USB2 Port
+	register "usb2_ports[2]" = "USB2_PORT_TYPE_C(OC_SKIP)"  # USB2_C2
+	register "usb2_ports[3]" = "USB2_PORT_EMPTY"		# Disable USB2 Port
+	register "usb2_ports[4]" = "USB2_PORT_MID(OC_SKIP)"     # USB2 SD bridge
+	register "usb2_ports[5]" = "USB2_PORT_MID(OC_SKIP)"     # Camera
+	register "usb2_ports[6]" = "USB2_PORT_MID(OC2)"     	# Type-A Port A1
+	register "usb2_ports[7]" = "USB2_PORT_EMPTY"		# Disable USB2 Port
+	register "usb2_ports[8]" = "USB2_PORT_MID(OC1)"     	# Type-A Port A0
+	register "usb2_ports[9]" = "USB2_PORT_MID(OC_SKIP)"     # M.2 Bluetooth
 
-	register "usb3_ports[0]" = "USB3_PORT_DEFAULT(OC3)"	# USB3/2 Type A port A0
-	register "usb3_ports[3]" = "USB3_PORT_DEFAULT(OC_SKIP)"	# M.2 WWAN
+	register "usb3_ports[0]" = "USB3_PORT_DEFAULT(OC1)"     # Type-A port A0(DCI)
+	register "usb3_ports[1]" = "USB3_PORT_EMPTY"		# Disable USB3 Port
+	register "usb3_ports[2]" = "USB3_PORT_DEFAULT(OC2)"     # Type A port A1
+	register "usb3_ports[3]" = "USB3_PORT_EMPTY"            # Disable USB3 Port
 
-	register "tcss_ports[0]" = "TCSS_PORT_DEFAULT(OC0)"
-	register "tcss_ports[1]" = "TCSS_PORT_DEFAULT(OC1)"
-	register "tcss_ports[2]" = "TCSS_PORT_DEFAULT(OC2)"
+	register "tcss_ports[0]" = "TCSS_PORT_DEFAULT(OC_SKIP)" # Typc-C Port C0
+	register "tcss_ports[1]" = "TCSS_PORT_EMPTY"		# Disable TCP1
+	register "tcss_ports[2]" = "TCSS_PORT_DEFAULT(OC_SKIP)" # Typc-C Port C2
+	register "tcss_ports[3]" = "TCSS_PORT_EMPTY"		# Disable TCP3
 
 	register "serial_io_i2c_mode" = "{
 		[PchSerialIoIndexI2C0] = PchSerialIoPci,
@@ -76,14 +82,12 @@ chip soc/intel/alderlake
 	#+-------------------+---------------------------+
 	#| Field             |  Value                    |
 	#+-------------------+---------------------------+
-	#| GSPI1             | Fingerprint MCU           |
-	#| I2C0              | Audio and WFC             |
-	#| I2C1              | cr50 TPM. Early init is   |
+	#| I2C0              | Trackpad                  |
+	#| I2C1              | Touchscreen               |
+	#| I2C2              | ISH Sensor                |
+	#| I2C4              | cr50 TPM. Early init is   |
 	#|                   | required to set up a BAR  |
 	#|                   | for TPM communication     |
-	#| I2C2              | SAR0                      |
-	#| I2C3              | Touchscreen               |
-	#| I2C5              | Trackpad                  |
 	#+-------------------+---------------------------+
 	register "common_soc_config" = "{
 		.i2c[0] = {
@@ -94,24 +98,18 @@ chip soc/intel/alderlake
 		},
 		.i2c[1] = {
 			.speed = I2C_SPEED_FAST,
-			.rise_time_ns = 650,
+			.rise_time_ns = 600,
 			.fall_time_ns = 400,
 			.data_hold_time_ns = 50,
 		},
 		.i2c[2] = {
 			.speed = I2C_SPEED_FAST,
-			.rise_time_ns = 900,
-			.fall_time_ns = 400,
-			.data_hold_time_ns = 50,
-		},
-		.i2c[3] = {
-			.early_init = 1,
-			.speed = I2C_SPEED_FAST,
 			.rise_time_ns = 600,
 			.fall_time_ns = 400,
 			.data_hold_time_ns = 50,
 		},
-		.i2c[5] = {
+		.i2c[4] = {
+			.early_init = 1,
 			.speed = I2C_SPEED_FAST,
 			.rise_time_ns = 650,
 			.fall_time_ns = 400,
@@ -152,12 +150,11 @@ chip soc/intel/alderlake
 			}"
 		end
 		device ref dtt on end
-#		device ref tbt_pcie_rp0 off end
-#		device ref tbt_pcie_rp1 off end
-#		device ref tbt_pcie_rp2 off end
-#		device ref tcss_xhci on end
-#		device ref tcss_dma0 on end
-#		device ref tcss_dma1 on end
+		device ref tbt_pcie_rp0 on end
+		device ref tbt_pcie_rp2 on end
+		device ref tcss_xhci on end
+		device ref tcss_dma0 on end
+		device ref tcss_dma1 on end
 		device ref xhci on end
 		device ref shared_sram on end
 		device ref cnvi_wifi on
@@ -167,25 +164,30 @@ chip soc/intel/alderlake
 				device generic 0 on end
 			end
 		end
-		device ref i2c3 on end
+		device ref i2c4 on
+			chip drivers/i2c/tpm
+				register "hid" = ""GOOG0005""
+				register "irq" = "ACPI_IRQ_EDGE_LOW(GPP_E2_IRQ)"
+				device i2c 50 on end
+			end
+		end
 		device ref heci1 on end
 		device ref sata on end
-		device ref pcie_rp8 on
-			# Enable SD Card PCIE 8 using clk 3
-			register "pch_pcie_rp[PCH_RP(8)]" = "{
-				.clk_src = 3,
+		device ref pcie4_0 on
+			# Enable CPU PCIE RP 1 using CLK 3
+			register "cpu_pcie_rp[CPU_RP(1)]" = "{
 				.clk_req = 3,
-				.flags = PCIE_RP_HOTPLUG | PCIE_RP_LTR | PCIE_RP_AER,
-			}"
-		end	#PCIE8 SD card
-		device ref pcie_rp9 on
-			# Enable NVMe PCIE 9 using clk 1
-			register "pch_pcie_rp[PCH_RP(9)]" = "{
-				.clk_src = 1,
-				.clk_req = 1,
+				.clk_src = 3,
 				.flags = PCIE_RP_LTR | PCIE_RP_AER,
 			}"
-		end	#PCIE9-12 SSD
+		end
+		device ref ish on
+			chip drivers/intel/ish
+				register "add_acpi_dma_property" = "true"
+				device generic 0 on end
+			end
+		end
+		device ref ufs on end
 		device ref uart0 on end
 		device ref gspi1 on end
 		device ref pch_espi on

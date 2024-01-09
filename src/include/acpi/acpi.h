@@ -75,12 +75,41 @@ enum coreboot_acpi_ids {
 };
 
 enum acpi_tables {
-	/* Tables defined by ACPI and used by coreboot */
-	BERT, CEDT, DBG2, DMAR, DSDT, EINJ, FACS, FADT, HEST, HMAT, HPET, IVRS,
-	MADT, MCFG, RSDP, RSDT, SLIT, SRAT, SSDT, TCPA, TPM2, XSDT, ECDT, LPIT,
-	SPCR, GTDT,
+	/* Alphabetic list of Tables defined by ACPI and used by coreboot */
+	BERT,   /* Boot Error Record Table */
+	CEDT,   /* CXL Early Discovery Table */
+	DBG2,   /* Debug Port Table 2 */
+	DMAR,   /* DMA Remapping Table */
+	DSDT,   /* Differentiated System Description Table */
+	ECDT,   /* Embedded Controller Boot Resources Table */
+	EINJ,   /* Error Injection Table */
+	FACS,   /* Firmware ACPI Control Structure */
+	FADT,   /* Fixed ACPI Description Table */
+	GTDT,   /* Generic Timer Description Table */
+	HEST,   /* Hardware Error Source Table */
+	HMAT,   /* Heterogeneous Memory Attribute Table */
+	HPET,   /* High Precision Event Timer Table */
+	IVRS,   /* I/O Virtualization Reporting Structure */
+	LPIT,   /* Low Power Idle Table */
+	MADT,   /* Multiple APIC Description Table */
+	MCFG,   /* PCI Express Memory Mapped Configuration */
+	PPTT,	/* Processor Properties Topology Table */
+	RSDP,   /* Root System Description Pointer */
+	RSDT,   /* Root System Description Table */
+	SLIT,   /* System Locality Distance Information Table */
+	SPCR,   /* Serial Port Console Redirection Table */
+	SRAT,   /* System Resource Affinity Table */
+	SSDT,   /* Secondary System Description Table */
+	TCPA,   /* Trusted Computing Platform Alliance Table */
+	TPM2,   /* Trusted Platform Module 2.0 Table */
+	WDAT,   /* Watchdog Action Table */
+	XSDT,   /* Extended System Description Table */
 	/* Additional proprietary tables used by coreboot */
-	VFCT, NHLT, SPMI, CRAT
+	CRAT,   /* Component Resource Attribute Table */
+	IORT,   /* Input Output Remapping Table */
+	NHLT,   /* Non HD audio Link Table */
+	SPMI,   /* Server Platform Management Interface table */
+	VFCT    /* VBIOS Fetch Table */
 };
 
 /* RSDP (Root System Description Pointer) */
@@ -839,12 +868,13 @@ typedef struct acpi_gic_its {
 _Static_assert(sizeof(acpi_madt_gic_its_t) == 20, "Wrong MADT acpi_madt_gic_its_t size\n");
 
 #define ACPI_DBG2_PORT_SERIAL			0x8000
-#define  ACPI_DBG2_PORT_SERIAL_16550		0x0000
+#define  ACPI_DBG2_PORT_SERIAL_16550_IO_ONLY	0x0000
 #define  ACPI_DBG2_PORT_SERIAL_16550_DBGP	0x0001
 #define  ACPI_DBG2_PORT_SERIAL_ARM_PL011	0x0003
 #define  ACPI_DBG2_PORT_SERIAL_ARM_SBSA		0x000e
 #define  ACPI_DBG2_PORT_SERIAL_ARM_DDC		0x000f
 #define  ACPI_DBG2_PORT_SERIAL_BCM2835		0x0010
+#define  ACPI_DBG2_PORT_SERIAL_16550		0x0012
 #define ACPI_DBG2_PORT_IEEE1394			0x8001
 #define  ACPI_DBG2_PORT_IEEE1394_STANDARD	0x0000
 #define ACPI_DBG2_PORT_USB			0x8002
@@ -1391,6 +1421,110 @@ typedef struct acpi_einj {
 	acpi_einj_action_table_t action_table[ACTION_COUNT];
 } __packed acpi_einj_t;
 
+/* PPTT definitions */
+
+#define PPTT_NODE_TYPE_CPU   0
+#define PPTT_NODE_TYPE_CACHE 1
+
+/* PPTT structures for ACPI generation */
+
+typedef struct acpi_pptt_cpu_node {
+	u8  type;         // type = 0 (processor structure specification)
+	u8  length;       // in bytes
+	u8  reserved[2];  // reserved, must be zero
+	u32 flags;        // processor hierarchy node structure flags
+	u32 parent;       // reference (delta of pptt-start and node) to parent node, must be zero if no parent
+	u32 processor_id; // must match id in MADT, if actual processor
+	u32 n_resources;  // number of resource structure references
+	u32 resources[];  // resource structure references
+} acpi_pptt_cpu_node_t;
+
+typedef struct acpi_pptt_cache_node {
+	u8  type;          // type = 1 (cache type structure)
+	u8  length;        // length = 28
+	u8  reserved[2];   // reserved, must be zero
+	u32 flags;         // cache structure flags
+	u32 next_level;    // reference to next level cache, null if last cache level
+	u32 size;          // cache size in bytes
+	u32 n_sets;        // number of sets in the cache
+	u8  associativity; // integer number of ways
+	u8  attributes;    // bits[7:5] reserved, must be zero
+	u16 line_size;     // in bytes
+	u32 cache_id;      // unique, non-zero
+} acpi_pptt_cache_node_t;
+
+union acpi_pptt_body {
+	acpi_pptt_cpu_node_t   cpu;
+	acpi_pptt_cache_node_t cache;
+};
+
+typedef struct acpi_pptt {
+	acpi_header_t header;
+
+	/*
+	 * followed by a variable length body
+	 * consisting of processor topology structures.
+	 *
+	 * see acpi_pptt_cpu_node and
+	 * acpi_pptt_cache_node.
+	 */
+	union acpi_pptt_body body[];
+} __packed acpi_pptt_t;
+
+/* PPTT structures for topology description */
+
+union pptt_cache_flags {
+	struct {
+		u32 size_valid          : 1;
+		u32 n_sets_valid        : 1;
+		u32 associativity_valid : 1;
+		u32 alloc_type_valid    : 1;
+		u32 cache_type_valid    : 1;
+		u32 write_policy_valid  : 1;
+		u32 line_size_valid     : 1;
+		u32 cache_id_valid      : 1;
+		u32 reserved            : 24;
+	};
+
+	u32 raw;
+};
+
+union pptt_cpu_flags {
+	struct {
+		u32 is_physical_package : 1;
+		u32 processor_id_valid  : 1;
+		u32 is_thread           : 1;
+		u32 is_leaf             : 1;
+		u32 is_identical_impl   : 1;
+		u32 reserved            : 27;
+	};
+
+	u32 raw;
+};
+
+struct pptt_cache {
+	u32    size;
+	u32    numsets;
+	u8     associativity;
+	u8     attributes;
+	u16    line_size;
+	union  pptt_cache_flags flags;
+	struct pptt_cache       *next_level;
+};
+
+struct pptt_cpu_resources {
+	struct pptt_cache         *cache;
+	struct pptt_cpu_resources *next;
+};
+
+struct pptt_topology {
+	u32    processor_id;
+	union  pptt_cpu_flags flags;
+	struct pptt_cpu_resources *resources;
+	struct pptt_topology      *sibling;
+	struct pptt_topology      *child;
+};
+
 /* SPCR (Serial Port Console Redirection Table) */
 typedef struct acpi_spcr {
 	acpi_header_t header;
@@ -1524,6 +1658,70 @@ struct acpi_gtdt_watchdog {
 #define ACPI_GTDT_WATCHDOG_IRQ_POLARITY     (1<<1)
 #define ACPI_GTDT_WATCHDOG_SECURE           (1<<2)
 
+enum acpi_wdat_actions {
+	ACPI_WDAT_RESET = 1,
+	ACPI_WDAT_GET_CURRENT_COUNTDOWN = 4,
+	ACPI_WDAT_GET_COUNTDOWN = 5,
+	ACPI_WDAT_SET_COUNTDOWN = 6,
+	ACPI_WDAT_GET_RUNNING_STATE = 8,
+	ACPI_WDAT_SET_RUNNING_STATE = 9,
+	ACPI_WDAT_GET_STOPPED_STATE = 10,
+	ACPI_WDAT_SET_STOPPED_STATE = 11,
+	ACPI_WDAT_GET_REBOOT = 16,
+	ACPI_WDAT_SET_REBOOT = 17,
+	ACPI_WDAT_GET_SHUTDOWN = 18,
+	ACPI_WDAT_SET_SHUTDOWN = 19,
+	ACPI_WDAT_GET_STATUS = 32,
+	ACPI_WDAT_SET_STATUS = 33,
+	ACPI_WDAT_ACTION_RESERVED = 34	/* 34 and greater are reserved */
+};
+
+enum acpi_wdat_instructions {
+	ACPI_WDAT_READ_VALUE = 0,
+	ACPI_WDAT_READ_COUNTDOWN = 1,
+	ACPI_WDAT_WRITE_VALUE = 2,
+	ACPI_WDAT_WRITE_COUNTDOWN = 3,
+	ACPI_WDAT_INSTRUCTION_RESERVED = 4,	/* 4 and greater are reserved */
+	ACPI_WDAT_PRESERVE_REGISTER = 0x80	/* Except for this value */
+};
+
+enum acpi_wdat_flags {
+	ACPI_WDAT_FLAG_DISABLED = 0,
+	ACPI_WDAT_FLAG_ENABLED = 1
+};
+
+enum acpi_wdat_access_size {
+	ACPI_WDAT_ACCESS_SIZE_BYTE = 1,
+	ACPI_WDAT_ACCESS_SIZE_WORD = 2,
+	ACPI_WDAT_ACCESS_SIZE_DWORD = 3
+};
+
+/* ACPI WDAT */
+typedef struct acpi_wdat_entry {
+	u8 action;
+	u8 instruction;
+	u16 reserved;
+	struct acpi_gen_regaddr register_region;
+	u32 value;
+	u32 mask;
+} __packed acpi_wdat_entry_t;
+
+typedef struct acpi_table_wdat {
+	acpi_header_t header;	/* Common ACPI table header */
+	u32 header_length;
+	u16 pci_segment;
+	u8 pci_bus;
+	u8 pci_device;
+	u8 pci_function;
+	u8 reserved[3];
+	u32 timer_period;
+	u32 max_count;
+	u32 min_count;
+	u8 flags;
+	u8 reserved2[3];
+	u32 entries;
+} __packed acpi_wdat_t;
+
 uintptr_t get_coreboot_rsdp(void);
 void acpi_create_einj(acpi_einj_t *einj, uintptr_t addr, u8 actions);
 
@@ -1561,6 +1759,9 @@ int acpi_create_cedt_chbs(acpi_cedt_chbs_t *chbs, u32 uid, u32 cxl_ver, u64 base
 int acpi_create_cedt_cfmws(acpi_cedt_cfmws_t *cfmws, u64 base_hpa, u64 window_size,
 	u8 eniw, u32 hbig, u16 restriction, u16 qtg_id, const u32 *interleave_target);
 
+/* PPTT related functions */
+void acpi_create_pptt_body(acpi_pptt_t *pptt);
+struct pptt_topology *acpi_get_pptt_topology(void);
 
 int acpi_create_madt_ioapic_from_hw(acpi_madt_ioapic_t *ioapic, u32 addr);
 
@@ -1570,6 +1771,7 @@ unsigned long acpi_create_madt_lapic_nmis(unsigned long current);
 
 uintptr_t platform_get_gicd_base(void);
 uintptr_t platform_get_gicr_base(void);
+int platform_get_gic_its(uintptr_t **base);
 
 int acpi_create_srat_lapic(acpi_srat_lapic_t *lapic, u8 node, u8 apic);
 int acpi_create_srat_x2apic(acpi_srat_x2apic_t *x2apic, u32 node, u32 apic);
@@ -1590,8 +1792,8 @@ void acpi_create_slit(acpi_slit_t *slit,
 
 /*
  * Create a Memory Proximity Domain Attributes structure for HMAT,
- * given proximity domain for the attached initiaor, and
- * proximimity domain for the memory.
+ * given proximity domain for the attached initiator, and
+ * proximity domain for the memory.
  */
 int acpi_create_hmat_mpda(acpi_hmat_mpda_t *mpda, u32 initiator, u32 memory);
 /* Create Heterogeneous Memory Attribute Table */
@@ -1630,6 +1832,8 @@ void generate_cpu_entries(const struct device *device);
 unsigned long acpi_write_dbg2_pci_uart(acpi_rsdp_t *rsdp, unsigned long current,
 				       const struct device *dev, uint8_t access_size);
 unsigned long acpi_pl011_write_dbg2_uart(acpi_rsdp_t *rsdp, unsigned long current,
+					 uint64_t base, const char *name);
+unsigned long acpi_16550_mmio32_write_dbg2_uart(acpi_rsdp_t *rsdp, unsigned long current,
 					 uint64_t base, const char *name);
 
 void acpi_create_dmar(acpi_dmar_t *dmar, enum dmar_flags flags,
@@ -1679,6 +1883,35 @@ unsigned long acpi_gtdt_add_timer_block(unsigned long current, const uint64_t ad
 					   struct acpi_gtdt_timer_entry *timers, size_t number);
 unsigned long acpi_gtdt_add_watchdog(unsigned long current, uint64_t refresh_frame,
 				     uint64_t control_frame, uint32_t gsiv, uint32_t flags);
+
+/*
+ * Populate primary acpi_wdat_t struct to provide basic information about watchdog and
+ * associated acpi_wdat_entry_t structures, which correspond to watchdog-related
+ * actions such as start/stop watchdog, set timeout, ping watchdog, get remaining time,
+ * etc. Each acpi_wdat_entry_t entry indicates what needs to be written to a specific
+ * address to perform a specific action or at which address the watchdog-related
+ * information is stored.
+ *
+ * The acpi_wdat_entry_t structures follow the acpi_wdat_t, so the table layout is as
+ * follows:
+ *  +---------------------+
+ *  | acpi_wdat_t {       |
+ *  |     ...             |
+ *  | }                   |
+ *  | acpi_wdat_entry_t { |
+ *  |     ...             |
+ *  | }                   |
+ *  | acpi_wdat_entry_t { |
+ *  |     ...             |
+ *  | }                   |
+ *  +---------------------+
+ *
+ * @param wdat Pointer to populate acpi_wdat_t struct
+ * @param current Position in memory after the acpi_wdat_t struct which also indicates
+ *                the position where the first acpi_wdat_entry_t must be placed.
+ * @return Position after last acpi_wdat_entry_t struct
+ */
+unsigned long acpi_soc_fill_wdat(acpi_wdat_t *wdat, unsigned long current);
 
 /* For ACPI S3 support. */
 void __noreturn acpi_resume(void *wake_vec);
