@@ -154,40 +154,6 @@ chip soc/intel/tigerlake
                 end
 
 		device ref shared_ram on end
-
-		# There are no devices hanging off of i2c buses, but they're needed for DDI (DP/HDMI).
-		register "common_soc_config" = "{
-			.i2c[0] = { .speed = I2C_SPEED_FAST, },
-			.i2c[1] = { .speed = I2C_SPEED_FAST, },
-			.i2c[2] = { .speed = I2C_SPEED_FAST, },
-			.i2c[3] = { .speed = I2C_SPEED_FAST, },
-			.i2c[5] = { .speed = I2C_SPEED_FAST, },
-		}"
-
-		device ref i2c0 on
-			register "SerialIoI2cMode[PchSerialIoIndexI2C0]" = "PchSerialIoPci"
-		end
-
-		device ref i2c1 on
-			register "SerialIoI2cMode[PchSerialIoIndexI2C1]" = "PchSerialIoPci"
-		end
-
-		device ref i2c2 on
-			register "SerialIoI2cMode[PchSerialIoIndexI2C2]" = "PchSerialIoPci"
-		end
-
-		device ref i2c3 on
-			register "SerialIoI2cMode[PchSerialIoIndexI2C3]" = "PchSerialIoPci"
-		end
-
-		device ref i2c4 on
-			register "SerialIoI2cMode[PchSerialIoIndexI2C4]" = "PchSerialIoPci"
-		end
-
-		device ref i2c5 on
-			register "SerialIoI2cMode[PchSerialIoIndexI2C5]" = "PchSerialIoPci"
-		end
-
 		device ref heci1 off end # Management Engine
 
 		device ref sata on
