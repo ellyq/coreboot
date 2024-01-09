@@ -63,7 +63,6 @@ chip soc/intel/tigerlake
 		# PCI-E configuration (PEG and RootPorts).
 		# Set all clock requests as "NOTUSED" for debugging purposes.
 		# TODO1: Program Interrupt Controller (x2apic) to route IRQs correctly.
-		# TODO2: Find RP corresponding to PCI-E x1 routed trough PCH.
 		# TODO3: Test CNVi (Intel's protocol for (some) Intel Wireless adapters).
 
 		# M.2 Gen4 (SoC)
@@ -79,9 +78,12 @@ chip soc/intel/tigerlake
 		end
 
 		# M.2 Gen3 (Chipset)
-		device ref pcie_rp5 on
+		device ref pcie_rp1 on # 1c.0 = RP5 according to dmesg? #
+		device ref pcie_rp5 on end
 			register "PcieRpEnable[4]" = "1"
 			register "PcieRpAdvancedErrorReporting[4]" = "1"
+			register "PcieRpSlotImplemented[4]" = "1"
+			register "PcieRpLtrEnable[4]" = "1"
 			register "PcieClkSrcUsage[4]" = "0x80"
 			register "PcieClkSrcClkReq[4]" = "PCIE_CLK_NOTUSED"
 		end
@@ -95,6 +97,16 @@ chip soc/intel/tigerlake
 			register "PcieClkSrcUsage[5]" = "8" # Found by TAE
 			register "PcieClkSrcClkReq[5]" = "5"
 		end
+
+		# Unknown
+		device ref pcie_rp10 on
+			register "PcieRpEnable[9]" = "1"
+                        register "PcieRpLtrEnable[9]" = "1"
+                        register "PcieRpSlotImplemented[9]" = "1"
+                        register "PcieRpAdvancedErrorReporting[9]" = "1"
+                        register "PcieClkSrcUsage[9]" = "0x80"
+                        register "PcieClkSrcClkReq[9]" = "PCIE_CLK_NOTUSED"
+                end
 
 		# Untested! Here be dragons!
 		device ref cnvi_wifi on
@@ -110,9 +122,30 @@ chip soc/intel/tigerlake
 		device ref pcie_rp11 on
 			register "PcieRpEnable[10]" = "1"
 			register "PcieRpLtrEnable[10]" = "1"
+			register "PcieRpAdvancedErrorReporting[10]" = "1"
 			register "PcieClkSrcUsage[3]" = "0x80"
 			register "PcieClkSrcClkReq[3]" = "3"
 		end
+
+		# Unknown
+		device ref pcie_rp12 on
+                        register "PcieRpEnable[11]" = "1"
+                        register "PcieRpLtrEnable[11]" = "1"
+                        register "PcieRpSlotImplemented[11]" = "1"
+                        register "PcieRpAdvancedErrorReporting[11]" = "1"
+                        register "PcieClkSrcUsage[11]" = "0x80"
+                        register "PcieClkSrcClkReq[11]" = "PCIE_CLK_NOTUSED"
+                end
+
+		# Unknown - doesn't exist in Coreboot definition, but does in stock UEFI
+		# device ref pcie_rp17 on
+                #        register "PcieRpEnable[16]" = "1"
+                #        register "PcieRpLtrEnable[16]" = "1"
+                #        register "PcieRpSlotImplemented[16]" = "1"
+                #        register "PcieRpAdvancedErrorReporting[16]" = "1"
+                #        register "PcieClkSrcUsage[16]" = "0x80"
+                #        register "PcieClkSrcClkReq[16]" = "PCIE_CLK_NOTUSED"
+                # end
 
 		# USB configuration.
 		# TODO: Figure out what kind of cursed shenanigans Erying came up with.
@@ -154,7 +187,7 @@ chip soc/intel/tigerlake
                 end
 
 		device ref shared_ram on end
-		device ref heci1 off end # Management Engine
+		device ref heci1 on end # Management Engine
 
 		device ref sata on
 			register "SataMode" = "0" # AHCI
@@ -234,5 +267,6 @@ chip soc/intel/tigerlake
 			register "PchHdaDspEnable" = "0"
 		end
 		device ref smbus on end
+		device ref fast_spi on end
 	end
 end
