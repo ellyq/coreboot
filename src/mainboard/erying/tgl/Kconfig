@@ -17,6 +17,9 @@ config BOARD_SPECIFIC_OPTIONS
 	select HAVE_CMOS_DEFAULT
 	select HAVE_OPTION_TABLE
 
+config MAINBOARD_SMBIOS_PRODUCT_NAME
+	default "POLESTAR G613 Pro"
+
 config MAINBOARD_DIR
 	default "erying/tgl"
 
@@ -25,18 +28,6 @@ config MAINBOARD_PART_NUMBER
 
 config CBFS_SIZE
 	default 0xA00000
-
-config PCIEXP_ASPM
-	default n
-
-config PCIEXP_CLK_PM
-	default n
-
-config PCIEXP_L1_SUB_STATE
-	default n
-
-config CONSOLE_POST
-	default y
 
 config POST_DEVICE
 	default n
