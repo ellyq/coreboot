@@ -11,18 +11,35 @@ chip soc/intel/tigerlake
 		.tdp_pl1_override = 45,
 		.tdp_pl2_override = 109,
 	}"
-	register "tcc_offset" = "10"
+	register "tcc_offset" = "8"
 
 	# FSP configuration
 	register "eist_enable" = "1"
 	register "enable_c6dram" = "1"
 	register "HybridStorageMode" = "1"
 
+	# Experimental PCI-E ClockSource mapping based on dump from FIT
+	register "PcieClkSrcClkReq[0]" = "0"
+	register "PcieClkSrcClkReq[1]" = "1"
+	register "PcieClkSrcClkReq[2]" = "3"
+	register "PcieClkSrcClkReq[3]" = "2"
+	register "PcieClkSrcClkReq[4]" = "4"
+	register "PcieClkSrcClkReq[5]" = "5"
+	register "PcieClkSrcClkReq[6]" = "6"
+	register "PcieClkSrcClkReq[7]" = "7"
+	register "PcieClkSrcClkReq[8]" = "8"
+	register "PcieClkSrcClkReq[9]" = "9"
+	register "PcieClkSrcClkReq[10]" = "10"
+	register "PcieClkSrcClkReq[11]" = "11"
+	register "PcieClkSrcClkReq[12]" = "12"
+	register "PcieClkSrcClkReq[13]" = "13"
+	register "PcieClkSrcClkReq[14]" = "14"
+	register "PcieClkSrcClkReq[15]" = "15"
+
 	device cpu_cluster 0 on end
 	device domain 0 on
 		device ref peg1 on 	# SoC x16 (Gen4)
 			register "PcieClkSrcUsage[0]" = "0x41"
-			register "PcieClkSrcClkReq[0]" = "PCIE_CLK_NOTUSED"
 		end
 
 		device ref igpu on
@@ -39,7 +56,6 @@ chip soc/intel/tigerlake
 
 		device ref peg0 on	# SoC M.2 (Gen4)
 			register "PcieClkSrcUsage[2]" = "0x40"
-			register "PcieClkSrcClkReq[2]" = "PCIE_CLK_NOTUSED"
 		end
 
 		device ref north_xhci on
@@ -72,6 +88,8 @@ chip soc/intel/tigerlake
 
 		device ref shared_ram on end
 
+		device ref cnvi_wifi on end
+
 		device ref sata on
 			register "SataPortsEnable[0]" = "1"
 			register "SataPortsEnable[1]" = "1"
@@ -85,11 +103,10 @@ chip soc/intel/tigerlake
 		end
 
 		device ref pcie_rp5 on		# PCH M.2 (Gen3)
-			# register "PcieRpLtrEnable[4]" = "1"
+			register "PcieRpLtrEnable[4]" = "1"
 			register "PcieRpSlotImplemented[4]" = "1"
 			register "PcieRpAdvancedErrorReporting[4]" = "1"
 			register "PcieClkSrcUsage[4]" = "4"
-			register "PcieClkSrcClkReq[4]" = "PCIE_CLK_NOTUSED"
 		end
 
 		device ref pcie_rp9 on		# PCH NGFF (WiFi)
@@ -97,13 +114,11 @@ chip soc/intel/tigerlake
 			register "PcieRpSlotImplemented[8]" = "1"
 			register "PcieRpAdvancedErrorReporting[8]" = "1"
 			register "PcieClkSrcUsage[5]" = "8"
-			register "PcieClkSrcClkReq[5]" = "PCIE_CLK_NOTUSED"
 		end
 
 		device ref pcie_rp11 on		# RTL8111 GbE
 			register "PcieRpLtrEnable[10]" = "1"
 			register "PcieClkSrcUsage[3]" = "10"
-			register "PcieClkSrcClkReq[3]" = "PCIE_CLK_NOTUSED"
 		end
 
 		device ref pcie_rp12 on		# PCH x1 (Gen3)
@@ -111,7 +126,6 @@ chip soc/intel/tigerlake
 			register "PcieRpSlotImplemented[11]" = "1"
 			register "PcieRpAdvancedErrorReporting[11]" = "1"
 			register "PcieClkSrcUsage[1]" = "11"
-			register "PcieClkSrcClkReq[1]" = "PCIE_CLK_NOTUSED"
 		end
 
 		device ref uart0 on
@@ -131,8 +145,6 @@ chip soc/intel/tigerlake
 					irq 0xf0 = 1
 				end
 
-				# WIP - Fans can be controlled using pwmconfig!
-				# modprobe it87 force_id=0x8603
 				device pnp 2e.4 on 	# Environment Controller
 					io 0x60 = 0xa30
 					io 0x62 = 0xa20
@@ -141,27 +153,27 @@ chip soc/intel/tigerlake
 					irq 0xf5 = 0x00
 					irq 0xf6 = 0xf0
 
-				register "TMPIN1.mode"    = "THERMAL_DIODE"
-				register "TMPIN2.mode"    = "THERMAL_DIODE"
+					register "TMPIN1.mode"    = "THERMAL_DIODE"
+					register "TMPIN2.mode"    = "THERMAL_DIODE"
 
-				register "FAN2.mode" = "FAN_SMART_AUTOMATIC" # CPU_FAN
-				register "FAN3.mode" = "FAN_SMART_AUTOMATIC" # SYS_FAN
+					register "FAN2.mode" = "FAN_SMART_AUTOMATIC" # CPU_FAN
+					register "FAN3.mode" = "FAN_SMART_AUTOMATIC" # SYS_FAN
 
-				register "FAN2.smart.tmpin"     = "1"
-				register "FAN2.smart.tmp_off"   = "35"
-				register "FAN2.smart.tmp_start" = "42"
-				register "FAN2.smart.tmp_full"  = "72"
-				register "FAN2.smart.tmp_delta" = "2"
-				register "FAN2.smart.pwm_start" = "26"
-				register "FAN2.smart.slope"     = "24"
+					register "FAN2.smart.tmpin"     = "1"
+					register "FAN2.smart.tmp_off"   = "35"
+					register "FAN2.smart.tmp_start" = "42"
+					register "FAN2.smart.tmp_full"  = "72"
+					register "FAN2.smart.tmp_delta" = "2"
+					register "FAN2.smart.pwm_start" = "26"
+					register "FAN2.smart.slope"     = "24"
 
-				register "FAN3.smart.tmpin"     = "1"
-				register "FAN3.smart.tmp_off"   = "35"
-				register "FAN3.smart.tmp_start" = "42"
-				register "FAN3.smart.tmp_full"  = "72"
-				register "FAN3.smart.tmp_delta" = "2"
-				register "FAN3.smart.pwm_start" = "26"
-				register "FAN3.smart.slope"     = "24"
+					register "FAN3.smart.tmpin"     = "1"
+					register "FAN3.smart.tmp_off"   = "35"
+					register "FAN3.smart.tmp_start" = "42"
+					register "FAN3.smart.tmp_full"  = "72"
+					register "FAN3.smart.tmp_delta" = "2"
+					register "FAN3.smart.pwm_start" = "26"
+					register "FAN3.smart.slope"     = "24"
 				end
 
 				device pnp 2e.5 off end
