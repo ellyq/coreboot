@@ -45,8 +45,8 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.DmiAspmCtrl = 0;
 
 	// Memory settings/training - based on stock
-	mupd->FspmConfig.SpdProfileSelected = 0; // Default profile
-	mupd->FspmConfig.RefClk = 0; // 133MHz
+	mupd->FspmConfig.SpdProfileSelected = 0; // Default Profile
+	mupd->FspmConfig.RefClk = 1; // 100MHz
 	mupd->FspmConfig.VddVoltage = 1350; // 1.35V (Applicable only with XMP Profile 1)
 	mupd->FspmConfig.Ratio = 0; // Auto
 	mupd->FspmConfig.RingDownBin = 0;
@@ -79,7 +79,7 @@ void mainboard_memory_init_params(FSPM_UPD *mupd)
 	mupd->FspmConfig.SafeMode = 0;
 	mupd->FspmConfig.OverrideDowngradeForMixedMemory = 0;
 	mupd->FspmConfig.MemTestOnWarmBoot = 1;
-	mupd->FspmConfig.DdrFreqLimit = 2933; // Setting to auto for now.
+	mupd->FspmConfig.DdrFreqLimit = 2866; // D0 (ES) revision is unstable with higher frequency, D1 works with 3200.
 	mupd->FspmConfig.SaGv = 0;
 	// mupd->FspmConfig.RetrainOnFastFail = 1; - Commenting out for now, can't find an equivalent in FSP-M headers.
 	mupd->FspmConfig.NModeSupport = 1; // Board type is 1N (1DPC).
