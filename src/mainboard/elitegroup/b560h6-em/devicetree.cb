@@ -1,0 +1,114 @@
+chip soc/intel/tigerlake
+
+	# FSP configuration
+	register "tcc_offset" = "8"
+	register "eist_enable" = "1"
+	register "enable_c6dram" = "1"
+	register "HybridStorageMode" = "1"
+
+	# Experimental PCI-E ClockSource mapping based on dump from FIT
+	register "PcieClkSrcClkReq[0]" = "0"
+	register "PcieClkSrcClkReq[1]" = "1"
+	register "PcieClkSrcClkReq[2]" = "2"
+	register "PcieClkSrcClkReq[3]" = "3"
+	register "PcieClkSrcClkReq[4]" = "4"
+	register "PcieClkSrcClkReq[5]" = "5"
+	register "PcieClkSrcClkReq[6]" = "6"
+	register "PcieClkSrcClkReq[7]" = "7"
+	register "PcieClkSrcClkReq[8]" = "8"
+	register "PcieClkSrcClkReq[9]" = "9"
+	register "PcieClkSrcClkReq[10]" = "10"
+	register "PcieClkSrcClkReq[11]" = "11"
+	register "PcieClkSrcClkReq[12]" = "12"
+	register "PcieClkSrcClkReq[13]" = "13"
+	register "PcieClkSrcClkReq[14]" = "14"
+	register "PcieClkSrcClkReq[15]" = "15"
+
+	device cpu_cluster 0 on end
+	device domain 0 on
+		device ref peg1 on 	# SoC x16 (Gen4)
+			register "PcieClkSrcUsage[0]" = "0x41"
+		end
+
+		device ref peg0 on	# SoC M.2 (Gen4)
+			register "PcieClkSrcUsage[2]" = "0x40"
+		end
+
+		device ref south_xhci on
+			register "usb2_ports" = "{
+				[0] = USB2_PORT_MID(OC_SKIP),
+				[1] = USB2_PORT_MID(OC_SKIP),
+				[2] = USB2_PORT_MID(OC_SKIP),
+				[3] = USB2_PORT_MID(OC_SKIP),
+				[4] = USB2_PORT_MID(OC_SKIP),
+				[5] = USB2_PORT_MID(OC_SKIP),
+				[8] = USB2_PORT_MID(OC_SKIP),
+				[9] = USB2_PORT_MID(OC_SKIP),
+				[10] = USB2_PORT_MID(OC_SKIP),
+				[11] = USB2_PORT_MID(OC_SKIP),
+			}"
+
+			register "usb3_ports" = "{
+				[0] = USB3_PORT_DEFAULT(OC_SKIP),
+				[1] = USB3_PORT_DEFAULT(OC_SKIP),
+				[2] = USB3_PORT_DEFAULT(OC_SKIP),
+				[3] = USB3_PORT_DEFAULT(OC_SKIP),
+				[4] = USB3_PORT_DEFAULT(OC_SKIP),
+				[5] = USB3_PORT_DEFAULT(OC_SKIP),
+			}"
+		end
+
+		device ref shared_ram on end
+		device ref cnvi_wifi on end
+		device ref i2c0 on end
+		device ref i2c2 on end
+		device ref heci1 on end
+
+		device ref sata on
+			register "SataPortsEnable[0]" = "1"
+			register "SataPortsEnable[1]" = "1"
+			register "SataPortsEnable[2]" = "1"
+			register "SataPortsEnable[3]" = "1"
+			register "SataSalpSupport" = "1"
+			register "SataPortsDevSlp[0]" = "1"
+			register "SataPortsDevSlp[1]" = "1"
+			register "SataPortsDevSlp[2]" = "1"
+			register "SataPortsDevSlp[3]" = "1"
+		end
+
+		device ref pcie_rp17 on end 	# (M.2 Gen3)
+
+		device ref pcie_rp5 on		# PCI-E x4 (Gen3)
+			register "PcieRpLtrEnable[4]" = "1"
+			register "PcieRpSlotImplemented[4]" = "1"
+			register "PcieRpAdvancedErrorReporting[4]" = "1"
+			register "PcieClkSrcUsage[4]" = "4"
+		end
+
+		device ref pcie_rp9 on end	# RTL8111 GbE
+		device ref pcie_rp10 on end 	# NGFF WiFi
+
+		device ref pch_espi on
+			chip superio/ite/it8629e
+				device pnp 2e.0 off end
+				device pnp 2e.1 off end
+				device pnp 2e.2 off end
+				device pnp 2e.3 off end
+				device pnp 2e.4 off end
+				device pnp 2e.5 off end
+				device pnp 2e.6 off end
+				device pnp 2e.7 off end
+				device pnp 2e.8 off end
+			end
+		end
+		device ref p2sb hidden end
+		device ref hda on
+			subsystemid 0x10ec 0x3000
+			register "PchHdaAudioLinkHdaEnable" = "1"
+		end
+		device ref smbus on end
+	end
+        chip drivers/crb
+                device mmio 0xfed40000 on end
+        end
+end

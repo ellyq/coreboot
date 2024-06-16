@@ -1,0 +1,8 @@
+Board name: ECS B560H6-EM
+Release year: 2021
+Category: desktop
+ROM IC1: MX25L6473D
+ROM IC2: MX77L12850F
+ROM package: SOIC-8
+ROM socketed: no
+Flashrom support: yes

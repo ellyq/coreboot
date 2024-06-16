@@ -1,0 +1,35 @@
+## SPDX-License-Identifier: GPL-2.0-only
+
+if BOARD_ELITEGROUP_B560H6_EM
+
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y
+	select BOARD_ROMSIZE_KB_24576
+	select SOC_INTEL_TIGERLAKE
+	select SOC_INTEL_TIGERLAKE_PCH_H
+	select SOC_INTEL_COMMON_BLOCK_HDA_VERB
+	select SOC_INTEL_COMMON_BLOCK_MEMINIT
+	select HAVE_INTEL_PTT
+	select HAVE_ACPI_TABLES
+	select HAVE_ACPI_RESUME
+	select SUPERIO_ITE_IT8629E
+	select HAVE_CMOS_DEFAULT
+	select HAVE_OPTION_TABLE
+	select CRB_TPM
+
+config MAINBOARD_SMBIOS_PRODUCT_NAME
+	default "B560H6-EM"
+
+config MAINBOARD_DIR
+	default "elitegroup/b560h6-em"
+
+config MAINBOARD_PART_NUMBER
+	default "b560h6-em"
+
+config CBFS_SIZE
+	default 0xA00000
+
+config POST_DEVICE
+	default n
+
+endif

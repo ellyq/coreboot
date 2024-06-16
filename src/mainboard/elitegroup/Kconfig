@@ -1,0 +1,17 @@
+## SPDX-License-Identifier: GPL-2.0-only
+
+if VENDOR_ELITEGROUP
+
+choice
+	prompt "Mainboard model"
+
+source "src/mainboard/elitegroup/*/Kconfig.name"
+
+endchoice
+
+source "src/mainboard/elitegroup/*/Kconfig"
+
+config MAINBOARD_VENDOR
+	default "Elitegroup (ECS)"
+
+endif # VENDOR_ELITEGROUP
