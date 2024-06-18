@@ -134,6 +134,11 @@ static const struct spi_flash_part_id flash_table[] = {
 		.fast_read_dual_io_support = 1,
 	},
 	{
+		/* MX77L12850F */
+		.id[0] = 0x7518
+		.nr_sectors_shift = 12,
+	},
+	{
 		/* MX25L6495F */
 		.id[0] = 0x9517,
 		.nr_sectors_shift = 11,
