@@ -8,7 +8,8 @@
 /* Fields were removed from the structure and we cannot add them back
  * without new builds of the binaryPI blobs.
  */
-#if CONFIG(NORTHBRIDGE_AMD_PI_00730F01)
+#if !CONFIG(CPU_AMD_AGESA_BINARY_PI) || \
+	CONFIG(NORTHBRIDGE_AMD_PI_00730F01)
 
 #define HAS_ACPI_SRAT	TRUE
 #define HAS_ACPI_SLIT	TRUE
