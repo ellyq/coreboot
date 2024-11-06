@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
-#include <arch/vga.h>
-
 /* System Bus */
 /*  _SB.PCI0 */
 
@@ -20,32 +18,55 @@ Method(_OSC,4)
 	}
 }
 
+Method(_BBN, 0) { /* Bus number = 0 */
+	Return (0)
+}
+Method(_STA, 0) {
+	/* DBGO("\\_SB\\PCI0\\_STA\n") */
+	Return (0x0b)     /* Status is visible */
+}
+
+Method(_PRT,0) {
+	If(PICM){ Return(APR0) }   /* APIC mode */
+	Return (PR0)                  /* PIC Mode */
+} /* end _PRT */
+
 /* Describe the Southbridge devices */
 
-/* 0:11.0 - SATA */
+#include "pcie.asl"
+
 Device(STCR) {
 	Name(_ADR, 0x00110000)
+	#include "acpi/sata.asl"
 } /* end STCR */
 
-/* 0:14.0 - SMBUS */
+#include "usb.asl"
+
 Device(SBUS) {
 	Name(_ADR, 0x00140000)
 } /* end SBUS */
 
-#include "usb.asl"
-
-/* 0:14.2 - HD Audio */
-#if !CONFIG(SOUTHBRIDGE_AMD_PI_KERN)
 #include "audio.asl"
-#endif
 
-/* 0:14.3 - LPC */
 #include "lpc.asl"
 
-/* 0:14.7 - SD Controller */
-Device(SDCN) {
-	Name(_ADR, 0x00140007)
-} /* end SDCN */
+/* PCI bridge */
+Device(PIBR) {
+	Name(_ADR, 0x00140004)
+	Name(_PRW, Package() {0x18, 4})
+
+	Method(_PRT, 0) {
+		Return (PCIB)
+	}
+} /* end HostPciBr */
+
+Device(ACAD) {
+	Name(_ADR, 0x00140005)
+} /* end Ac97audio */
+
+Device(ACMD) {
+	Name(_ADR, 0x00140006)
+} /* end Ac97modem */
 
 Name(CRES, ResourceTemplate() {
 	/* Set the Bus number and Secondary Bus number for the PCI0 device
@@ -73,13 +94,6 @@ Name(CRES, ResourceTemplate() {
 		0x0000,		/* translation */
 		0x0CF8		/* length */
 	)
-	WORDIO(ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
-		0x0000,		/* address granularity */
-		0x03B0,		/* range minimum */
-		0x03DF,		/* range maximum */
-		0x0000,		/* translation */
-		0x0030		/* length */
-	)
 
 	WORDIO(ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
 		0x0000,		/* address granularity */
@@ -89,8 +103,7 @@ Name(CRES, ResourceTemplate() {
 		0xF300		/* length */
 	)
 
-	Memory32Fixed(READONLY, VGA_MMIO_BASE, VGA_MMIO_SIZE, VGAM)	/* VGA memory space */
-	Memory32Fixed(READONLY, 0x000C0000, 0x00020000, EMM1)	/* Assume C0000-E0000 empty */
+	Memory32Fixed(READONLY, 0x000A0000, 0x00020000, VGAM)	/* VGA memory space */
 
 	/* memory space for PCI BARs below 4GB */
 	Memory32Fixed(ReadOnly, 0x00000000, 0x00000000, MMIO)
@@ -117,13 +130,6 @@ Method(_CRS, 0) {
 	Return (CRES) /* note to change the Name buffer */
 } /* end of Method(_SB.PCI0._CRS) */
 
-#if CONFIG(HUDSON_IMC_FWM)
-	/* TODO: It is unstable.
-	 * might be fixed by restructuring
-	 */
-	#include "acpi/AmdImc.asl" /* Hudson IMC function */
-#endif
-
 /*
  *
  *               FIRST METHOD CALLED UPON BOOT
@@ -146,9 +152,15 @@ Method(_INI, 0) {
 	/* DBGO(\_REV) */
 	/* DBGO("\n") */
 
-#if CONFIG(HUDSON_IMC_FWM)
-#if CONFIG(ACPI_ENABLE_THERMAL_ZONE)
-	ITZE() /* enable IMC Fan Control*/
-#endif
-#endif
+	/* On older chips, clear PciExpWakeDisEn */
+	/*if (\SBRI <= 0x13) {
+	*	\PWDE = 0
+	* }
+	*/
 } /* End Method(_SB._INI) */
+
+Scope(\){
+
+	#include "misc_io.asl"
+
+}

@@ -87,7 +87,8 @@ static void hudson_final(void *chip_info)
 {
 	if (CONFIG(HUDSON_IMC_FWM)) {
 		agesawrapper_fchecfancontrolservice();
-		enable_imc_thermal_zone();
+		if (!CONFIG(ACPI_ENABLE_THERMAL_ZONE))
+			enable_imc_thermal_zone();
 	}
 }
 

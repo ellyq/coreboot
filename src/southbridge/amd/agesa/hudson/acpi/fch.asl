@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
-#include <arch/vga.h>
-
 /* System Bus */
 /*  _SB.PCI0 */
 
@@ -25,6 +23,7 @@ Method(_OSC,4)
 /* 0:11.0 - SATA */
 Device(STCR) {
 	Name(_ADR, 0x00110000)
+	#include "acpi/sata.asl"
 } /* end STCR */
 
 /* 0:14.0 - SMBUS */
@@ -35,9 +34,7 @@ Device(SBUS) {
 #include "usb.asl"
 
 /* 0:14.2 - HD Audio */
-#if !CONFIG(SOUTHBRIDGE_AMD_PI_KERN)
 #include "audio.asl"
-#endif
 
 /* 0:14.3 - LPC */
 #include "lpc.asl"
@@ -46,6 +43,24 @@ Device(SBUS) {
 Device(SDCN) {
 	Name(_ADR, 0x00140007)
 } /* end SDCN */
+
+#if !CONFIG(SOUTHBRIDGE_AMD_AGESA_YANGTZE)
+
+/* 0:14.4 - PCI slot 1, 2, 3 */
+Device(PIBR) {
+	Name(_ADR, 0x00140004)
+	Name(_PRW, Package() {0x18, 4})
+
+	Method(_PRT, 0) {
+		Return (PCIB)
+	}
+}
+
+/* 0:14.6 - GEC Controller */
+Device(ACMD) {
+	Name(_ADR, 0x00140006)
+} /* end Ac97modem */
+#endif
 
 Name(CRES, ResourceTemplate() {
 	/* Set the Bus number and Secondary Bus number for the PCI0 device
@@ -89,7 +104,7 @@ Name(CRES, ResourceTemplate() {
 		0xF300		/* length */
 	)
 
-	Memory32Fixed(READONLY, VGA_MMIO_BASE, VGA_MMIO_SIZE, VGAM)	/* VGA memory space */
+	Memory32Fixed(READONLY, 0x000A0000, 0x00020000, VGAM)	/* VGA memory space */
 	Memory32Fixed(READONLY, 0x000C0000, 0x00020000, EMM1)	/* Assume C0000-E0000 empty */
 
 	/* memory space for PCI BARs below 4GB */
@@ -118,9 +133,6 @@ Method(_CRS, 0) {
 } /* end of Method(_SB.PCI0._CRS) */
 
 #if CONFIG(HUDSON_IMC_FWM)
-	/* TODO: It is unstable.
-	 * might be fixed by restructuring
-	 */
 	#include "acpi/AmdImc.asl" /* Hudson IMC function */
 #endif
 
