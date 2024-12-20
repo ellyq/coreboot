@@ -1,0 +1,17 @@
+## SPDX-License-Identifier: GPL-2.0-or-later
+
+if VENDOR_RADXA
+
+choice
+	prompt "Mainboard model"
+
+source "src/mainboard/radxa/*/Kconfig.name"
+
+endchoice
+
+source "src/mainboard/radxa/*/Kconfig"
+
+config MAINBOARD_VENDOR
+	default "RADXA"
+
+endif # VENDOR_RADXA

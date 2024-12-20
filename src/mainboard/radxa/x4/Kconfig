@@ -1,0 +1,29 @@
+## SPDX-License-Identifier: GPL-2.0-or-later
+
+if BOARD_RADXA_X4
+
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y
+	select BOARD_ROMSIZE_KB_16384
+	select FSP_TYPE_IOT
+	select HAVE_ACPI_TABLES
+	select SOC_INTEL_ALDERLAKE_PCH_N
+	select SOC_INTEL_COMMON_BLOCK_HDA_VERB
+	select INTEL_LPSS_UART_FOR_CONSOLE
+	select INTEL_GMA_HAVE_VBT
+	select DRIVERS_INTEL_PMC
+	select DRIVERS_INTEL_ISH
+	select MAINBOARD_HAS_TPM2
+	select HAVE_INTEL_PTT
+	select CRB_TPM
+
+config HAVE_SPD_IN_CBFS
+	default y
+
+config MAINBOARD_DIR
+	default "radxa/x4"
+
+config MAINBOARD_PART_NUMBER
+	default "X4"
+
+endif # BOARD_RADXA_X4

@@ -1,0 +1,102 @@
+chip soc/intel/alderlake
+
+	register "sagv" = "SaGv_Enabled"
+	register "tcc_offset" = "10"
+
+	register "pmc_gpe0_dw0" = "GPP_B"
+	register "pmc_gpe0_dw1" = "GPP_D"
+	register "pmc_gpe0_dw2" = "GPP_E"
+
+	device domain 0 on
+		device ref igpu on
+			register "ddi_portA_config" = "1" 	# HDMI
+			register "ddi_portB_config" = "1"	# HDMI
+			register "ddi_ports_config" = "{
+				[DDI_PORT_A] = DDI_ENABLE_HPD | DDI_ENABLE_DDC,
+				[DDI_PORT_B] = DDI_ENABLE_HPD | DDI_ENABLE_DDC
+			}"
+		end
+
+		device ref crashlog on end
+
+		# Enabled in stock, most definitely unnecessary (empty registers)
+		device ref tcss_xhci on end
+
+		# Enabled in stock, most definitely unnecessary
+		device ref ish on end
+
+		# TODO: Proper mapping
+		device ref xhci on
+			register "usb2_ports" = "{
+				[0] = USB2_PORT_MID(OC_SKIP),
+				[1] = USB2_PORT_MID(OC_SKIP),
+				[2] = USB2_PORT_MID(OC_SKIP),
+				[3] = USB2_PORT_MID(OC_SKIP),
+				[4] = USB2_PORT_MID(OC_SKIP),
+				[5] = USB2_PORT_MID(OC_SKIP),
+				[6] = USB2_PORT_MID(OC_SKIP),
+				[7] = USB2_PORT_MID(OC_SKIP),
+			}"
+
+			register "usb3_ports" = "{
+				[0] = USB3_PORT_DEFAULT(OC_SKIP),
+				[1] = USB3_PORT_DEFAULT(OC_SKIP),
+				[2] = USB3_PORT_DEFAULT(OC_SKIP),
+				[3] = USB3_PORT_DEFAULT(OC_SKIP),
+				[4] = USB3_PORT_DEFAULT(OC_SKIP),
+				[5] = USB3_PORT_DEFAULT(OC_SKIP),
+				[6] = USB3_PORT_DEFAULT(OC_SKIP),
+				[7] = USB3_PORT_DEFAULT(OC_SKIP),
+			}"
+		end
+
+		device ref shared_sram on end
+
+		# Untested, hardware provided by vendor doesn't have eMMC
+		device ref emmc on end
+
+		# Realtek RTL8821CE (WiFi)
+		device ref pcie_rp1 on
+			register "pch_pcie_rp[PCH_RP(1)]" = "{
+				.clk_src = 2,
+				.clk_req = 2,
+				.flags = PCIE_RP_BUILT_IN,
+			}"
+		end
+
+		# Intel I226-V (2.5Gb LAN)
+		device ref pcie_rp7 on
+			register "pch_pcie_rp[PCH_RP(7)]" = "{
+				.clk_src = 0,
+				.clk_req = 0,
+				.flags = PCIE_RP_BUILT_IN,
+			}"
+		end
+
+		# NVME (M.2 2230 - Gen3 x4)
+		device ref pcie_rp9 on
+			register "pch_pcie_rp[PCH_RP(9)]" = "{
+				.clk_src = 3,
+				.clk_req = 3,
+			}"
+		end
+
+		# Disabled in stock firmware. Needed to get UART output straight from SoC (no SIO).
+		# Unsure about mapping, enable'em all for now.
+
+		device ref uart0 on
+			register "serial_io_uart_mode" = "{ [PchSerialIoIndexUART0] = PchSerialIoPci, }"
+		end
+
+		# ALC269Q
+		device ref hda on
+			register "pch_hda_audio_link_hda_enable"	= "true"
+			register "pch_hda_idisp_codec_enable"		= "true"
+			register "pch_hda_idisp_link_frequency"		= "HDA_LINKFREQ_96MHZ"
+			register "pch_hda_idisp_link_tmode"		= "HDA_TMODE_8T"
+		end
+
+		device ref smbus on end
+		device ref fast_spi on end
+	end
+end

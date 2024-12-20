@@ -1,0 +1,8 @@
+Vendor name: Radxa
+Board name: X4
+Release year: 2024
+ROM IC: W25Q128JV
+ROM package: WSON-8
+ROM socketed: no
+Flashrom support: yes
+Category: eval
